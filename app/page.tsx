@@ -1,65 +1,145 @@
-import Image from "next/image";
+"use client"
+
+// import Image from "next/image";
+import { useCallback, useState } from "react";
+import { SiteHeader } from "@/app/components/SiteHeader";
+import { SiteFooter } from "@/app/components/SiteFooter";
+import { Button } from "@/app/components/ui/button";
+import { useAuth } from "@/app/lib/auth";
+import { ArrowRight, Share2, Lock, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
+  const { user, listAllUsers } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [featured, setFeatured] = useState<any[]>([]);
+  console.log("Featured users:>>>>>>>>>>>>>", featured);
+
+  const getFeatured = useCallback(async () => {
+    if (typeof window !== "undefined") {
+      const users = await listAllUsers();
+      if (users?.length > 0) {
+        setFeatured(users.slice(0, 6));
+      }
+    }
+  }, [listAllUsers]);
+
+  getFeatured();
+
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="min-h-screen">
+      <SiteHeader />
+      <main>
+        <section className="relative overflow-hidden px-6 py-24">
+          <div className="absolute inset-0 -z-10 bg-gradient-brand opacity-20 blur-3xl" />
+          <div className="mx-auto max-w-4xl text-center">
+            <span className="inline-block rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground">
+              <Sparkles className="mr-1 inline h-3 w-3" /> Build. Share. Get
+              hired.
+            </span>
+            <h1 className="mt-6 text-5xl md:text-7xl">
+              Your <span className="text-gradient">portfolio</span>,<br />
+              one link away.
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
+              Sign up, design your portfolio, and share a unique link with
+              clients. They can view it, but only you can edit.
+            </p>
+            <div className="mt-10 flex justify-center gap-3">
+              {user ? (
+                <Link href="/dashboard">
+                  <Button size="lg" className="bg-gradient-brand shadow-glow">
+                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/signup">
+                    <Button size="lg" className="bg-gradient-brand shadow-glow">
+                      Create your portfolio{" "}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link 
+                    href="/u/$username" 
+                    // params={{ username: "kenny" }}
+                  >
+                    <Button size="lg" variant="secondary">
+                      View demo
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-6 py-16">
+          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+            {[
+              {
+                icon: Sparkles,
+                title: "Beautiful by default",
+                body: "A polished dark, gradient-rich theme tuned for developers.",
+              },
+              {
+                icon: Share2,
+                title: "Shareable link",
+                body: "Send /u/your-name to clients — public view, no login required.",
+              },
+              {
+                icon: Lock,
+                title: "Only you can edit",
+                body: "Your portfolio is locked to your account. Admins can moderate.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="rounded-2xl bg-card p-6 transition hover:shadow-glow"
+              >
+                <f.icon className="h-8 w-8 text-brand-cyan" />
+                <h3 className="mt-4 text-xl">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {featured.length > 0 && (
+          <section className="px-6 py-16">
+            <div className="mx-auto max-w-7xl">
+              <h2 className="text-3xl">Recent portfolios</h2>
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {featured.map((u) => (
+                  <Link
+                    key={u.id}
+                    href="/u/$username"
+                    // params={{ username: u.username }}
+                    className="group rounded-2xl bg-card p-6 transition hover:shadow-glow"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-lg font-bold">
+                        {u.portfolio.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold">{u.portfolio.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          /u/{u.username}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-4 text-sm text-muted-foreground line-clamp-2">
+                      {u.portfolio.tagline}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
+      <SiteFooter />
     </div>
   );
 }
