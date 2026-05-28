@@ -2,32 +2,17 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
 import {
-  getAllUsers,
   loginUser,
   LoginUserProps,
   registerUser,
   RegisterUserProps,
 } from "@/app/services/api";
-
-// export interface PortfolioData {
-//   name: string;
-//   tagline: string;
-//   greeting: string;
-//   bioShort: string;
-//   bioLong: string;
-//   whatsapp: string;
-//   email: string;
-//   avatarUrl?: string;
-//   skills: { name: string; level: number }[];
-//   projects: { title: string; description: string; link: string; image?: string }[];
-// }
 
 export interface Project {
   id: string;
@@ -70,6 +55,7 @@ export interface User {
   email: string;
   fullName: string;
   username: string;
+  portfolio: Portfolio;
 }
 
 // interface DbShape {
@@ -86,14 +72,16 @@ interface AuthCtx {
   register: (payload: RegisterUserProps) => Promise<void>;
   login: (payload: LoginUserProps) => Promise<void>;
   logout: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listAllUsers: () => Promise<Array<User | any>>;
+  // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // listAllUsers: () => Promise<Array<User | any>>;
+  isAdmin: boolean;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const isAdmin = (user && user.email !== "ogbogukenny@yahoo.com") || false;
 
   useEffect(() => {
     const preservedUser = JSON.parse(
@@ -126,16 +114,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const listAllUsers: AuthCtx["listAllUsers"] = useCallback(async () => {
-    const res = await getAllUsers();
-    console.log("All users fetched successfully:>>>>>>>>>>>>", res);
-    return res.data;
-  }, []);
+  // const listAllUsers: AuthCtx["listAllUsers"] = useCallback(async () => {
+  //   const res = await getAllUsers();
+  //   console.log("All users fetched successfully:>>>>>>>>>>>>", res);
+  //   return res.data;
+  // }, []);
 
   return (
-    <Ctx.Provider
-      value={{ user, setUser, register, login, logout, listAllUsers }}
-    >
+    <Ctx.Provider value={{ user, setUser, register, login, logout, isAdmin }}>
       {children}
     </Ctx.Provider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -8,13 +8,13 @@ import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useAuth, type Portfolio } from "@/app/lib/auth";
 import { Eye, Save, Plus, Trash2, Share2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { mockPortfolioData } from "@/app/constants/mockData";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const router = useRouter();
+  // const router = useRouter();
   const [form, setForm] = useState<Portfolio | null>(
     mockPortfolioData[0] as Portfolio,
   );
@@ -49,11 +49,11 @@ const Dashboard = () => {
           <div>
             <h1 className="text-3xl">Your Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Logged in as <strong>@{user.fullName}</strong>
+              Logged in as <strong>@{user.username}</strong>
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/u/${user.fullName}`}>
+            <Link href={`/u/${user.username}`}>
               <Button variant="secondary">
                 <Eye className="mr-2 h-4 w-4" /> Preview
               </Button>

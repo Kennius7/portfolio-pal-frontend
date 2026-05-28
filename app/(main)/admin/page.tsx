@@ -9,30 +9,33 @@ import { Label } from "@/app/components/ui/label";
 import { useAuth, User, Portfolio } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 import { Shield, Eye, Save } from "lucide-react";
+import { useGetAllUser } from "@/app/hooks/helpers";
+import Link from "next/link";
 
 function AdminPage() {
-  const { user, listAllUsers } = useAuth();
+  const { user, isAdmin } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<Portfolio | null>(null);
   const [saved, setSaved] = useState(false);
+  const { data: allUsers = [] } = useGetAllUser();
 
   useEffect(() => {
-    if (!user || (user && user.email !== "ogbogukenny@yahoo.com")) {
+    if (!user || (user && isAdmin)) {
       router.push("/");
       return;
     }
-    // if (user.email !== "ogbogukenny@yahoo.com") { router.push("/"); return; }
-    const all = listAllUsers();
-    setUsers(all);
-    if (all[0]) {
-      setSelectedId(all[0].id);
-      setForm(all[0].portfolio);
-    }
-  }, [user]);
 
-  if (!user || !user.isAdmin)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUsers(allUsers);
+    if (allUsers?.[0]) {
+      setSelectedId(allUsers[0].id);
+      setForm(allUsers[0].portfolio);
+    }
+  }, [allUsers, user, router, isAdmin]);
+
+  if (!user || !isAdmin)
     return (
       <div className="min-h-screen">
         <SiteHeader />
@@ -45,13 +48,13 @@ function AdminPage() {
     if (u) setForm(u.portfolio);
   };
 
-  const save = () => {
-    if (!selectedId || !form) return;
-    updateUserPortfolioById(selectedId, form);
-    setUsers(listAllUsers());
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
+  //   const save = () => {
+  //     if (!selectedId || !form) return;
+  //     updateUserPortfolioById(selectedId, form);
+  //     setUsers(listAllUsers());
+  //     setSaved(true);
+  //     setTimeout(() => setSaved(false), 1800);
+  //   };
 
   const selected = users.find((u) => u.id === selectedId);
 
@@ -92,7 +95,7 @@ function AdminPage() {
                       </p>
                       <p className="truncate text-xs opacity-80">
                         @{u.username}
-                        {u.isAdmin && " · admin"}
+                        {isAdmin && " · admin"}
                       </p>
                     </div>
                   </button>
@@ -113,16 +116,13 @@ function AdminPage() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Link
-                    to="/u/$username"
-                    params={{ username: selected.username }}
-                  >
+                  <Link href={`/u/${selected.username}`}>
                     <Button variant="secondary">
                       <Eye className="mr-2 h-4 w-4" /> View
                     </Button>
                   </Link>
                   <Button
-                    onClick={save}
+                    // onClick={save}
                     className="bg-gradient-brand shadow-glow"
                   >
                     <Save className="mr-2 h-4 w-4" />{" "}

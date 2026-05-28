@@ -43,35 +43,10 @@ export default function Home() {
   const [featured, setFeatured] = useState<UserFeatured[]>([]);
   const { data: allUsers = [], isPending } = useGetAllUser();
 
-  // 1. The callback safely handles fetching and updating state
-  // const getFeatured = useCallback(async () => {
-  //   // If we already have data, don't let a re-render wipe it out
-  //   if (hasFetched) return;
-
-  //   try {
-  //     setHasFetched(true); // Mark as started
-  //     setIsLoading(true);
-  //     const users = await listAllUsers();
-  //     if (users && users?.length > 0) {
-  //       setFeatured(users.slice(0, 6));
-  //       setHasFetched(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to fetch featured users:", error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, [listAllUsers, hasFetched]);
-
-  // 2. The effect hooks into the component lifecycle to execute the fetch once
   useEffect(() => {
-    // getFeatured();
-
     if (allUsers?.length > 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFeatured(allUsers.slice(0, 6));
-      // setIsLoading(false);
-      // setHasFetched(true);
     }
   }, [allUsers]);
 
