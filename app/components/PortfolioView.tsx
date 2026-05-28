@@ -1,8 +1,15 @@
-import type { PortfolioData } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
+import type { Portfolio } from "@/app/lib/auth";
+import { Button } from "@/app/components/ui/button";
 import { MessageCircle, ExternalLink, Download } from "lucide-react";
+import Image from "next/image";
 
-export function PortfolioView({ data, username }: { data: PortfolioData; username: string }) {
+export function PortfolioView({
+  data,
+  username,
+}: {
+  data: Portfolio;
+  username: string;
+}) {
   return (
     <div>
       {/* Hero */}
@@ -13,8 +20,12 @@ export function PortfolioView({ data, username }: { data: PortfolioData; usernam
               {data.greeting}
             </span>
             <h1 className="mt-6 text-5xl md:text-6xl">{data.tagline}</h1>
-            <p className="mt-6 max-w-lg text-muted-foreground">{data.bioShort}</p>
-            <p className="mt-4 max-w-lg text-muted-foreground">{data.bioLong}</p>
+            <p className="mt-6 max-w-lg text-muted-foreground">
+              {data.bioShort}
+            </p>
+            <p className="mt-4 max-w-lg text-muted-foreground">
+              {data.bioLong}
+            </p>
             <Button className="mt-8 bg-gradient-brand shadow-glow" size="lg">
               <MessageCircle className="mr-2 h-4 w-4" /> Chat me on WhatsApp
             </Button>
@@ -23,7 +34,13 @@ export function PortfolioView({ data, username }: { data: PortfolioData; usernam
             <div className="absolute inset-0 rounded-full bg-gradient-brand blur-3xl opacity-40" />
             <div className="relative h-72 w-72 overflow-hidden rounded-full border-4 border-accent shadow-glow md:h-96 md:w-96">
               {data.avatarUrl ? (
-                <img src={data.avatarUrl} alt={data.name} className="h-full w-full object-cover" />
+                <Image
+                  src={data.avatarUrl}
+                  alt={data.name}
+                  className="h-full w-full object-cover"
+                  width={500}
+                  height={500}
+                />
               ) : (
                 <div className="grid h-full w-full place-items-center bg-gradient-brand text-7xl font-black">
                   {data.name.charAt(0)}
@@ -51,11 +68,15 @@ export function PortfolioView({ data, username }: { data: PortfolioData; usernam
         <div className="mx-auto max-w-7xl">
           <h2 className="text-4xl">Skills</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Some of the skills and competencies I've acquired over the years.
+            Some of the skills and competencies I&apos;ve acquired over the
+            years.
           </p>
           <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
             {data.skills.map((s) => (
-              <div key={s.name} className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow">
+              <div
+                key={s.name}
+                className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow"
+              >
                 <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-brand text-xl font-bold">
                   {s.name.slice(0, 2).toUpperCase()}
                 </div>
@@ -72,14 +93,19 @@ export function PortfolioView({ data, username }: { data: PortfolioData; usernam
         <div className="mx-auto max-w-7xl">
           <h2 className="text-center text-4xl">Projects</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-            A selection of notable work I've shipped.
+            A selection of notable work I&apos;ve shipped.
           </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {data.projects.map((p) => (
-              <div key={p.title} className="group rounded-2xl bg-card p-6 transition hover:shadow-glow">
+              <div
+                key={p.title}
+                className="group rounded-2xl bg-card p-6 transition hover:shadow-glow"
+              >
                 <div className="aspect-video rounded-lg bg-gradient-brand opacity-80" />
                 <h3 className="mt-5 text-xl">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{p.description}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {p.description}
+                </p>
                 <a
                   href={p.link}
                   target="_blank"
@@ -100,14 +126,27 @@ export function PortfolioView({ data, username }: { data: PortfolioData; usernam
           <div>
             <h2 className="text-5xl">Get In Touch</h2>
             <p className="mt-4 max-w-md text-white/80">
-              Want to share this portfolio? Send <strong>/u/{username}</strong> to anyone — they can view but not edit.
+              Want to share this portfolio? Send <strong>/u/{username}</strong>{" "}
+              to anyone — they can view but not edit.
             </p>
           </div>
           <form className="space-y-4">
-            <input className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none" placeholder="First Name" />
-            <input className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none" placeholder="Email Address" />
-            <textarea rows={4} className="w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none" placeholder="Message" />
-            <Button type="button" variant="secondary" className="rounded-full">Send Message</Button>
+            <input
+              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
+              placeholder="First Name"
+            />
+            <input
+              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
+              placeholder="Email Address"
+            />
+            <textarea
+              rows={4}
+              className="w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
+              placeholder="Message"
+            />
+            <Button type="button" variant="secondary" className="rounded-full">
+              Send Message
+            </Button>
           </form>
         </div>
       </section>
