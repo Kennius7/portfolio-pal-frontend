@@ -1,36 +1,88 @@
-"use client"
+"use client";
 
-// import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Share2, Lock, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { SiteFooter } from "@/app/components/SiteFooter";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/lib/auth";
-import { ArrowRight, Share2, Lock, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { useGetAllUser } from "./hooks/helpers";
+
+interface UserFeatured {
+  userId: string;
+  email: string;
+  fullName: string;
+  username: string;
+  portfolio: {
+    name: string;
+    tagline: string;
+  };
+}
+
+const FEATURES = [
+  {
+    icon: Sparkles,
+    title: "Beautiful by default",
+    body: "A polished dark, gradient-rich theme tuned for developers.",
+  },
+  {
+    icon: Share2,
+    title: "Shareable link",
+    body: "Send /u/your-name to clients — public view, no login required.",
+  },
+  {
+    icon: Lock,
+    title: "Only you can edit",
+    body: "Your portfolio is locked to your account. Admins can moderate.",
+  },
+];
 
 export default function Home() {
-  const { user, listAllUsers } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [featured, setFeatured] = useState<any[]>([]);
-  console.log("Featured users:>>>>>>>>>>>>>", featured);
+  const { user } = useAuth();
+  const [featured, setFeatured] = useState<UserFeatured[]>([]);
+  const { data: allUsers = [], isPending } = useGetAllUser();
 
-  const getFeatured = useCallback(async () => {
-    if (typeof window !== "undefined") {
-      const users = await listAllUsers();
-      if (users?.length > 0) {
-        setFeatured(users.slice(0, 6));
-      }
+  // 1. The callback safely handles fetching and updating state
+  // const getFeatured = useCallback(async () => {
+  //   // If we already have data, don't let a re-render wipe it out
+  //   if (hasFetched) return;
+
+  //   try {
+  //     setHasFetched(true); // Mark as started
+  //     setIsLoading(true);
+  //     const users = await listAllUsers();
+  //     if (users && users?.length > 0) {
+  //       setFeatured(users.slice(0, 6));
+  //       setHasFetched(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch featured users:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [listAllUsers, hasFetched]);
+
+  // 2. The effect hooks into the component lifecycle to execute the fetch once
+  useEffect(() => {
+    // getFeatured();
+
+    if (allUsers?.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFeatured(allUsers.slice(0, 6));
+      // setIsLoading(false);
+      // setHasFetched(true);
     }
-  }, [listAllUsers]);
+  }, [allUsers]);
 
-  getFeatured();
-
+  console.log("Featured users:>>>>>>>>>>>>>", featured);
+  console.log("Current user:>>>>>>>>>>>>>", user);
 
   return (
     <div className="min-h-screen">
       <SiteHeader />
       <main>
+        {/* Hero Section */}
         <section className="relative overflow-hidden px-6 py-24">
           <div className="absolute inset-0 -z-10 bg-gradient-brand opacity-20 blur-3xl" />
           <div className="mx-auto max-w-4xl text-center">
@@ -39,7 +91,24 @@ export default function Home() {
               hired.
             </span>
             <h1 className="mt-6 text-5xl md:text-7xl">
-              Your <span className="text-gradient">portfolio</span>,<br />
+              Your{" "}
+              <span className={`${user ? "" : "text-gradient"}`}>
+                portfolio{!user && <br />}
+              </span>
+              {user && (
+                <span
+                  className={` 
+                    ${user ? "text-gradient" : ""}
+                    ${
+                      user.fullName.length > 15
+                        ? "text-3xl md:text-4xl"
+                        : "text-3xl md:text-7xl"
+                    }
+                  `}
+                >
+                  &nbsp;{user.fullName.split(" ")[0]},<br />
+                </span>
+              )}
               one link away.
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
@@ -61,10 +130,7 @@ export default function Home() {
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link 
-                    href="/u/$username" 
-                    // params={{ username: "kenny" }}
-                  >
+                  <Link href="/u/kenny">
                     <Button size="lg" variant="secondary">
                       View demo
                     </Button>
@@ -75,25 +141,10 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Features Section */}
         <section className="px-6 py-16">
           <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-            {[
-              {
-                icon: Sparkles,
-                title: "Beautiful by default",
-                body: "A polished dark, gradient-rich theme tuned for developers.",
-              },
-              {
-                icon: Share2,
-                title: "Shareable link",
-                body: "Send /u/your-name to clients — public view, no login required.",
-              },
-              {
-                icon: Lock,
-                title: "Only you can edit",
-                body: "Your portfolio is locked to your account. Admins can moderate.",
-              },
-            ].map((f) => (
+            {FEATURES.map((f) => (
               <div
                 key={f.title}
                 className="rounded-2xl bg-card p-6 transition hover:shadow-glow"
@@ -106,38 +157,44 @@ export default function Home() {
           </div>
         </section>
 
-        {featured.length > 0 && (
-          <section className="px-6 py-16">
-            <div className="mx-auto max-w-7xl">
-              <h2 className="text-3xl">Recent portfolios</h2>
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {featured.map((u) => (
+        {/* Recent Portfolios Section */}
+        <section className="px-6 py-16">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="text-3xl">Recent portfolios</h2>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {isPending ? (
+                <div className="text-muted-foreground">
+                  Loading portfolios...
+                </div>
+              ) : featured.length === 0 ? (
+                <div className="text-muted-foreground">No portfolios found</div>
+              ) : (
+                featured.map((u) => (
                   <Link
-                    key={u.id}
-                    href="/u/$username"
-                    // params={{ username: u.username }}
+                    key={u.userId}
+                    href={`/u/${u.username}`}
                     className="group rounded-2xl bg-card p-6 transition hover:shadow-glow"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-lg font-bold">
-                        {u.portfolio.name.charAt(0)}
+                      <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-lg font-bold uppercase">
+                        {u.fullName.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-semibold">{u.portfolio.name}</p>
+                        <p className="font-semibold">{u.fullName}</p>
                         <p className="text-xs text-muted-foreground">
-                          /u/{u.username}
+                          /u/{u.fullName}
                         </p>
                       </div>
                     </div>
                     <p className="mt-4 text-sm text-muted-foreground line-clamp-2">
-                      {u.portfolio.tagline}
+                      {u.email}
                     </p>
                   </Link>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>

@@ -5,6 +5,7 @@ import { useAuth } from "@/app/lib/auth";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function SiteHeader() {
   const { user, logout } = useAuth();
@@ -15,7 +16,13 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-background shadow-glow">
-            <img src="/Portfolio_Pal_Logo1.png" className="h-9 w-9" />
+            <Image
+              src="/Portfolio_Pal_Logo1.png"
+              alt="Logo"
+              width={36}
+              height={36}
+              // className="h-9 w-9"
+            />
           </div>
 
           <span className="text-lg font-bold">
@@ -34,7 +41,7 @@ export function SiteHeader() {
                 Dashboard
               </Link>
 
-              {user.isAdmin && (
+              {user.email === "ogbogukenny@yahoo.com" && (
                 <Link href="/admin" className="hover:text-foreground">
                   Admin
                 </Link>
@@ -69,4 +76,3 @@ export function SiteHeader() {
     </header>
   );
 }
-

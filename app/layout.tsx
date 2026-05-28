@@ -1,31 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { AuthProvider } from '@/app/lib/auth';
-import { Toaster } from "sonner"
+import { Inter } from "next/font/google";
+import { AuthProvider } from "@/app/lib/auth";
+import { Toaster } from "sonner";
 import "./globals.css";
+import QueryProvider from "./components/providers/QueryProvider";
 
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
-
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Portfolio Pal',
-  description: 'Dashboard for porfolio creation and management',
-}
+  title: "Portfolio Pal",
+  description: "Dashboard for porfolio creation and management",
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
@@ -33,12 +22,14 @@ export default function RootLayout({
       className={`${inter.className} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <AuthProvider>
-          {children}
-          <div className="fixed top-4 right-4">
-            <Toaster position="top-right" richColors />
-          </div>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+            <div className="fixed z-60 top-8 right-4">
+              <Toaster position="top-right" richColors />
+            </div>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -6,7 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { useAuth } from "@/app/lib/auth";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 // export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -25,7 +25,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login({ email, password });
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: unknown) {
       setErr((err as Error).message);
     } finally {
