@@ -15,12 +15,12 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-border/40 bg-nav/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-background shadow-glow">
+          <div className="grid h-10 w-10 place-items-center text-background shadow-glow">
             <Image
               src="/Portfolio_Pal_Logo1.png"
               alt="Logo"
-              width={36}
-              height={36}
+              width={40}
+              height={40}
               // className="h-9 w-9"
             />
           </div>

@@ -26,9 +26,9 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await register({ username, fullName, email, password });
-      router.push("/dashboard");
+      router.push("/login");
     } catch (e: any) {
-      setErr(e.message);
+      setErr(e.response.data.message);
     } finally {
       setLoading(false);
     }
