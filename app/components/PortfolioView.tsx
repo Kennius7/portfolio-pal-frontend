@@ -1,7 +1,7 @@
-import type { Portfolio } from "@/app/lib/auth";
 import { Button } from "@/app/components/ui/button";
 import { MessageCircle, ExternalLink, Download } from "lucide-react";
 import Image from "next/image";
+import { Portfolio } from "../types/types";
 
 export function PortfolioView({
   data,
@@ -36,14 +36,14 @@ export function PortfolioView({
               {data.avatarUrl ? (
                 <Image
                   src={data.avatarUrl}
-                  alt={data.name}
+                  alt={data.title}
                   className="h-full w-full object-cover"
                   width={500}
                   height={500}
                 />
               ) : (
                 <div className="grid h-full w-full place-items-center bg-gradient-brand text-7xl font-black">
-                  {data.name.charAt(0)}
+                  {data.title.charAt(0)}
                 </div>
               )}
             </div>
@@ -72,7 +72,7 @@ export function PortfolioView({
             years.
           </p>
           <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-            {data.skills.map((s) => (
+            {/* {data.skills.map((s) => (
               <div
                 key={s.name}
                 className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow"
@@ -83,7 +83,7 @@ export function PortfolioView({
                 <p className="mt-3 text-sm font-semibold">{s.name}</p>
                 <p className="text-xs text-muted-foreground">{s.level}%</p>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </section>
@@ -96,7 +96,7 @@ export function PortfolioView({
             A selection of notable work I&apos;ve shipped.
           </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {data.projects.map((p) => (
+            {/* {data.projects.map((p) => (
               <div
                 key={p.title}
                 className="group rounded-2xl bg-card p-6 transition hover:shadow-glow"
@@ -115,7 +115,7 @@ export function PortfolioView({
                   View project <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </section>

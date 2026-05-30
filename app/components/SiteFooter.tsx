@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Mail, Phone } from "lucide-react";
 
 export function SiteFooter() {
@@ -10,7 +9,8 @@ export function SiteFooter() {
             Portfolio <span className="text-gradient">Pal</span>
           </h4>
           <p className="text-muted-foreground">
-            Multi-user portfolio platform. Sign up, build your portfolio, and share a unique link with clients.
+            Multi-user portfolio platform. Sign up, build your portfolio, and
+            share a unique link with clients.
           </p>
         </div>
         <div>
@@ -25,8 +25,12 @@ export function SiteFooter() {
         <div>
           <h4 className="mb-3 text-base font-bold">Have Questions?</h4>
           <div className="flex flex-col item-start text-muted-foreground gap-2">
-            <p className="inline-flex items-center gap-2"><Phone className="h-4 w-4" /> +234 (805) 554-9979</p>
-            <p className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> shosanacodemia@gmail.com</p>
+            <p className="inline-flex items-center gap-2">
+              <Phone className="h-4 w-4" /> +234 (805) 554-9979
+            </p>
+            <p className="inline-flex items-center gap-2">
+              <Mail className="h-4 w-4" /> shosanacodemia@gmail.com
+            </p>
           </div>
           <div className="mt-3 flex gap-3 text-muted-foreground">
             {/* <Github className="h-5 w-5" /> */}
