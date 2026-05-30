@@ -6,11 +6,12 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Label } from "@/app/components/ui/label";
-import { useAuth, User, Portfolio } from "@/app/lib/auth";
+import { useAuth } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 import { Shield, Eye, Save } from "lucide-react";
 import { useGetAllUser } from "@/app/hooks/helpers";
 import Link from "next/link";
+import { Portfolio, User } from "@/app/types/types";
 
 function AdminPage() {
   const { user, isAdmin } = useAuth();
@@ -87,11 +88,11 @@ function AdminPage() {
                     }`}
                   >
                     <div className="grid h-9 w-9 place-items-center rounded-full bg-background text-sm font-bold">
-                      {u.portfolio.name.charAt(0)}
+                      {u.portfolio.title.charAt(0)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">
-                        {u.portfolio.name}
+                        {u.portfolio.title}
                       </p>
                       <p className="truncate text-xs opacity-80">
                         @{u.username}
@@ -109,7 +110,7 @@ function AdminPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl">
-                    Editing: {selected.portfolio.name}
+                    Editing: {selected.portfolio.title}
                   </h2>
                   <p className="text-sm text-muted-foreground">
                     {selected.email} · @{selected.username}
@@ -134,8 +135,10 @@ function AdminPage() {
                 <div>
                   <Label>Name</Label>
                   <Input
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
                   />
                 </div>
                 <div>
