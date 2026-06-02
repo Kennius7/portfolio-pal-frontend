@@ -22,31 +22,41 @@ interface AuthCtx {
   login: (payload: LoginUserProps) => Promise<void>;
   logout: () => void;
   isAdmin: boolean;
+  isHydrated: boolean;
+  setIsHydrated: (hydrated: boolean) => void;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const isAdmin = (user && user.email !== "ogbogukenny@yahoo.com") || false;
+  // const [user, setUser] = useState<User | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
+
+    const storedUser = localStorage.getItem("currentUser");
+
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const isAdmin = user?.email === "ogbogukenny@yahoo.com" || false;
 
   useEffect(() => {
-    const preservedUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null",
-    );
-    if (preservedUser) {
+    const storedUser = localStorage.getItem("currentUser");
+
+    if (storedUser) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(preservedUser);
+      setUser(JSON.parse(storedUser));
+      setIsHydrated(true);
     }
-  }, []);
+  }, [setUser]);
 
   const register: AuthCtx["register"] = async (payload: RegisterUserProps) => {
-    const res = await registerUser({ payload });
+    const res = await registerUser(payload);
     console.log("User registered successfully:>>>>>>>>>>>>", res);
   };
 
   const login: AuthCtx["login"] = async (payload: LoginUserProps) => {
-    const res = await loginUser({ payload });
+    const res = await loginUser(payload);
     console.log("User logged in successfully:>>>>>>>>>>>>", res);
     // localStorage.setItem(SESSION_KEY, res.user.id);
     const loggedInUser = JSON.stringify(res.user);
@@ -62,7 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ user, setUser, register, login, logout, isAdmin }}>
+    <Ctx.Provider
+      value={{
+        user,
+        setUser,
+        register,
+        login,
+        logout,
+        isAdmin,
+        isHydrated,
+        setIsHydrated,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );

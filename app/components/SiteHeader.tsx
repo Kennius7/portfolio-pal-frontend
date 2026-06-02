@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export function SiteHeader() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout, isHydrated } = useAuth();
   const router = useRouter();
 
   return (
@@ -35,13 +35,27 @@ export function SiteHeader() {
             Home
           </Link>
 
-          {user ? (
+          {(!isHydrated || !user) && (
+            <>
+              <Link href="/login" className="hover:text-foreground">
+                Login
+              </Link>
+
+              <Link href="/signup">
+                <Button size="sm" className="bg-gradient-brand">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
+
+          {user && isHydrated && (
             <>
               <Link href="/dashboard" className="hover:text-foreground">
                 Dashboard
               </Link>
 
-              {user.email === "ogbogukenny@yahoo.com" && (
+              {isAdmin && (
                 <Link href="/admin" className="hover:text-foreground">
                   Admin
                 </Link>
@@ -57,18 +71,6 @@ export function SiteHeader() {
                 <LogOut className="h-4 w-4" />
                 Logout
               </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="hover:text-foreground">
-                Login
-              </Link>
-
-              <Link href="/signup">
-                <Button size="sm" className="bg-gradient-brand">
-                  Sign up
-                </Button>
-              </Link>
             </>
           )}
         </nav>

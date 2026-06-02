@@ -1,27 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
-import { Textarea } from "@/app/components/ui/textarea";
 import { useAuth } from "@/app/lib/auth";
-import {
-  Eye,
-  Save,
-  Plus,
-  Trash2,
-  Share2,
-  SaveIcon,
-  PenIcon,
-} from "lucide-react";
+import { Eye, Save, Plus, Share2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import LoadingComponent from "@/app/components/LoadingComponent";
 import {
-  CreatePortfolioProps,
   CreateProjectProps,
   CreateSkillProps,
   Portfolio,
@@ -31,33 +17,30 @@ import {
   useGetAllSkillsByPortfolioId,
   useGetPortfolioById,
 } from "@/app/hooks/helpers";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createProject,
   createSkill,
+  deleteProject,
+  deleteSkill,
   updatePortfolio,
+  updateProject,
+  updateSkill,
 } from "@/app/services/api";
-import { toast } from "sonner";
 import { SkillCategory } from "@/app/constants/skillCategories";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/app/components/ui/table";
-import { ellipsis, formatDateWithMoment } from "@/app/lib/utils";
+import { useApiMutation } from "@/app/hooks/useApiMutation";
+import SkillForm from "@/app/components/SkillForm";
+import SkillsTable from "@/app/components/SkillsTable";
+import ProjectsTable from "@/app/components/ProjectsTable";
+import ProjectForm from "@/app/components/ProjectForm";
+import PortfolioForm from "@/app/components/PortfolioForm";
+import { useDashboard } from "@/app/lib/dashboard-context";
 
-interface ApiError {
-  message: string;
+interface Skill extends CreateSkillProps {
+  id: string;
+}
+
+interface Project extends CreateProjectProps {
+  id: string;
 }
 
 const initialSkillState = {
@@ -79,132 +62,236 @@ const initialProjectState = {
   portfolioId: "",
 };
 
+const mapPortfolioToForm = (portfolio: Portfolio): Portfolio => ({
+  id: portfolio.id,
+  title: portfolio.title,
+  theme: portfolio.theme,
+  published: portfolio.published,
+  tagline: portfolio.tagline,
+  greeting: portfolio.greeting,
+  bioShort: portfolio.bioShort,
+  bioLong: portfolio.bioLong,
+  whatsapp: portfolio.whatsapp,
+  email: portfolio.email,
+  avatarUrl: portfolio.avatarUrl,
+  resumeUrl: portfolio.resumeUrl,
+  userId: portfolio.userId,
+});
+
 const Dashboard = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [portfolioForm, setPortfolioForm] =
-    useState<CreatePortfolioProps | null>(null);
-  const [skills, setSkills] = useState<CreateSkillProps>(initialSkillState);
-  const [projects, setProjects] =
-    useState<CreateProjectProps>(initialProjectState);
+  const {
+    portfolioForm,
+    setPortfolioForm,
+    skills,
+    setSkills,
+    projects,
+    setProjects,
+  } = useDashboard();
+
   const [saved, setSaved] = useState(false);
   const [showSkillForm, setShowSkillForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
-
+  const [isEditingSkill, setIsEditingSkill] = useState(false);
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [activeSkillId, setActiveSkillId] = useState("");
+  const [activeProjectId, setActiveProjectId] = useState("");
   const portfolioId = user?.portfolio?.id || "";
 
   // Fetching data hooks
-  const { data: portfolioData = [] } = useGetPortfolioById(portfolioId);
+  const { data: portfolioData } = useGetPortfolioById(portfolioId);
   const { data: allSkillsForCurrentPortfolio = [] } =
     useGetAllSkillsByPortfolioId(portfolioId);
   const { data: allProjectsForCurrentPortfolio = [] } =
     useGetAllProjectsByPortfolioId(portfolioId);
 
   useEffect(() => {
-    if (portfolioId.trim()) {
-      setPortfolioForm({
-        id: portfolioData.id || "",
-        title: portfolioData.title || "",
-        theme: portfolioData.theme || "",
-        published: portfolioData.published || false,
-        tagline: portfolioData.tagline || "",
-        greeting: portfolioData.greeting || "",
-        bioShort: portfolioData.bioShort || "",
-        bioLong: portfolioData.bioLong || "",
-        whatsapp: portfolioData.whatsapp || "",
-        email: portfolioData.email || "",
-        avatarUrl: portfolioData.avatarUrl || "",
-        resumeUrl: portfolioData.resumeUrl || "",
-        userId: portfolioData.userId || "",
-      });
-      setSkills({
-        ...initialSkillState,
-        portfolioId,
-      });
-      setProjects({
-        ...initialProjectState,
-        portfolioId,
-      });
-    }
-  }, [portfolioData, portfolioId]);
+    if (!portfolioData?.id) return;
 
-  // useEffect(() => {
-  //   if (allSkillsForCurrentPortfolio.length > 0) {
-  //     setSkills(allSkillsForCurrentPortfolio);
-  //   }
-  // }, [allSkillsForCurrentPortfolio]);
+    setPortfolioForm((prev) => prev ?? mapPortfolioToForm(portfolioData));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolioData?.id]);
 
-  // useEffect(() => {
-  //   if (allProjectsForCurrentPortfolio.length > 0) {
-  //     setProjects(allProjectsForCurrentPortfolio);
-  //   }
-  // }, [allProjectsForCurrentPortfolio]);
+  useEffect(() => {
+    if (!portfolioId) return;
 
-  const { mutate: updatePortfolioMutation } = useMutation({
+    setSkills({
+      ...initialSkillState,
+      portfolioId,
+    });
+    setProjects({
+      ...initialProjectState,
+      portfolioId,
+    });
+  }, [portfolioId, setSkills, setProjects]);
+
+  const {
+    mutate: updatePortfolioMutation,
+    isPending: isPendingUpdatePortfolio,
+  } = useApiMutation({
     mutationKey: ["updatePortfolio"],
-    mutationFn: (form: CreatePortfolioProps) => updatePortfolio(form),
-    onSuccess: (data) => {
-      toast.success("Portfolio updated successfully!", {
-        position: "top-right",
-        duration: 5000,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["getPortfolioById"],
-      });
-      console.log("Data fetched:", data);
-    },
-    onError: (error: unknown) => {
-      const apiError = error as ApiError;
-      toast.error(apiError?.message || "An unknown error occurred", {
-        position: "top-right",
-        duration: 5000,
-      });
-    },
+    mutationFn: updatePortfolio,
+    successMessage: "Portfolio updated successfully!",
+    invalidateKeys: [["getPortfolioById"]],
   });
 
-  const { mutate: createSkillMutation } = useMutation({
-    mutationKey: ["createSkill"],
-    mutationFn: (form: CreateSkillProps) => createSkill(form),
-    onSuccess: (data) => {
-      toast.success("Skill created successfully!", {
-        position: "top-right",
-        duration: 5000,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["getAllSkillsByPortfolioId"],
-      });
-      console.log("Data fetched:", data);
-    },
-    onError: (error: unknown) => {
-      const apiError = error as ApiError;
-      toast.error(apiError?.message || "An unknown error occurred", {
-        position: "top-right",
-        duration: 5000,
-      });
-    },
-  });
+  const { mutate: createSkillMutation, isPending: isPendingCreateSkill } =
+    useApiMutation({
+      mutationKey: ["createSkill"],
+      mutationFn: createSkill,
+      successMessage: "Skill created successfully!",
+      invalidateKeys: [["getAllSkillsByPortfolioId"]],
+      onSuccessCallback: () => setShowSkillForm(false),
+    });
 
-  const { mutate: createProjectMutation } = useMutation({
-    mutationKey: ["createProject"],
-    mutationFn: (form: CreateProjectProps) => createProject(form),
-    onSuccess: (data) => {
-      toast.success("Project created successfully!", {
-        position: "top-right",
-        duration: 5000,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["getAllProjectsByPortfolioId"],
-      });
-      console.log("Data fetched:", data);
-    },
-    onError: (error: unknown) => {
-      const apiError = error as ApiError;
-      toast.error(apiError?.message || "An unknown error occurred", {
-        position: "top-right",
-        duration: 5000,
-      });
-    },
-  });
+  const { mutate: createProjectMutation, isPending: isPendingCreateProject } =
+    useApiMutation({
+      mutationKey: ["createProject"],
+      mutationFn: createProject,
+      successMessage: "Project created successfully!",
+      invalidateKeys: [["getAllProjectsByPortfolioId"]],
+      onSuccessCallback: () => setShowProjectForm(false),
+    });
+
+  const { mutate: updateSkillMutation, isPending: isPendingUpdateSkill } =
+    useApiMutation({
+      mutationKey: ["updateSkill"],
+      mutationFn: updateSkill,
+      successMessage: "Skill updated successfully!",
+      invalidateKeys: [["getAllSkillsByPortfolioId"]],
+      onSuccessCallback: () => setShowSkillForm(false),
+    });
+
+  const { mutate: updateProjectMutation, isPending: isPendingUpdateProject } =
+    useApiMutation({
+      mutationKey: ["updateProject"],
+      mutationFn: updateProject,
+      successMessage: "Project updated successfully!",
+      invalidateKeys: [["getAllProjectsByPortfolioId"]],
+      onSuccessCallback: () => setShowProjectForm(false),
+    });
+
+  const { mutate: deleteSkillMutation, isPending: isPendingDeleteSkill } =
+    useApiMutation({
+      mutationKey: ["deleteSkill"],
+      mutationFn: deleteSkill,
+      successMessage: "Skill deleted successfully!",
+      invalidateKeys: [["getAllSkillsByPortfolioId"]],
+    });
+
+  const { mutate: deleteProjectMutation, isPending: isPendingDeleteProject } =
+    useApiMutation({
+      mutationKey: ["deleteProject"],
+      mutationFn: deleteProject,
+      successMessage: "Project deleted successfully!",
+      invalidateKeys: [["getAllProjectsByPortfolioId"]],
+    });
+
+  // Type-safe property updates for base portfolio properties
+  // const updatePortfolioField = <K extends keyof Portfolio>(
+  //   key: K,
+  //   value: Portfolio[K],
+  // ) => {
+  //   setPortfolioForm((prev) => (prev ? { ...prev, [key]: value } : null));
+  // };
+
+  // const updateSkillField = <K extends keyof CreateSkillProps>(
+  //   field: K,
+  //   value: CreateSkillProps[K],
+  // ) => {
+  //   setSkills((prev) => ({ ...prev, [field]: value }));
+  // };
+
+  // const updateProjectField = <K extends keyof CreateProjectProps>(
+  //   field: K,
+  //   value: CreateProjectProps[K],
+  // ) => {
+  //   setProjects((prev) => ({ ...prev, [field]: value }));
+  // };
+
+  // const updateField = <T extends Record<string, any>, K extends keyof T>(
+  //   setter: React.Dispatch<React.SetStateAction<T | null>>,
+  //   field: K,
+  //   value: T[K],
+  // ) => {
+  //   setter((prev) => (prev ? { ...prev, [field]: value } : prev));
+  // };
+
+  const saveSkill = () => {
+    if (isEditingSkill) {
+      updateSkillMutation(skills);
+    } else {
+      createSkillMutation(skills);
+    }
+  };
+
+  const saveProject = () => {
+    if (isEditingProject) {
+      updateProjectMutation(projects);
+    } else {
+      createProjectMutation(projects);
+    }
+  };
+
+  const handleDeleteSkill = (skillsId: string) => {
+    setActiveSkillId(skillsId);
+    deleteSkillMutation(skillsId);
+  };
+
+  const handleDeleteProject = (projectsId: string) => {
+    setActiveProjectId(projectsId);
+    deleteProjectMutation(projectsId);
+  };
+
+  const handleAddSkill = () => {
+    setIsEditingSkill(false);
+    setShowSkillForm(true);
+    setSkills({ ...initialSkillState, portfolioId });
+  };
+
+  const handleEditSkill = (skillData: Skill) => {
+    setIsEditingSkill(true);
+    setShowSkillForm(true);
+    setSkills(skillData);
+  };
+
+  const handleAddProject = () => {
+    setIsEditingProject(false);
+    setShowProjectForm(true);
+    setProjects({ ...initialProjectState, portfolioId });
+  };
+
+  const handleEditProject = (projectData: Project) => {
+    setIsEditingProject(true);
+    setShowProjectForm(true);
+    setProjects(projectData);
+  };
+
+  const handleRemoveSkillForm = () => {
+    setShowSkillForm(false);
+    setSkills({ ...initialSkillState, portfolioId });
+  };
+
+  const handleRemoveProjectForm = () => {
+    setShowProjectForm(false);
+    setProjects({ ...initialProjectState, portfolioId });
+  };
+
+  const savePortfolio = () => {
+    updatePortfolioMutation(portfolioForm);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 5000);
+  };
+
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined") return "";
+
+    if (user) {
+      return `${window.location.origin}/u/${user.username}`;
+    }
+
+    return `${window.location.origin}/u/...`;
+  }, [user]);
 
   if (!user || !portfolioForm) {
     return (
@@ -214,37 +301,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  // Type-safe property updates for base portfolio properties
-  const updatePortfolioField = <K extends keyof Portfolio>(
-    key: K,
-    value: Portfolio[K],
-  ) => {
-    setPortfolioForm((prev) => (prev ? { ...prev, [key]: value } : null));
-  };
-
-  const saveSkill = () => {
-    createSkillMutation(skills);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
-
-  const saveProject = () => {
-    createProjectMutation(projects);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
-
-  const savePortfolio = () => {
-    updatePortfolioMutation(portfolioForm);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
-  };
-
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/u/${user.username}`
-      : "";
 
   return (
     <div className="min-h-screen">
@@ -268,8 +324,16 @@ const Dashboard = () => {
               onClick={savePortfolio}
               className="bg-gradient-brand shadow-glow"
             >
-              <Save className="mr-2 h-4 w-4" />{" "}
-              {saved ? "Saved!" : "Save changes"}
+              {isPendingUpdatePortfolio ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}{" "}
+              {isPendingUpdatePortfolio
+                ? "Saving..."
+                : saved
+                  ? "Saved!"
+                  : "Save changes"}
             </Button>
           </div>
         </div>
@@ -292,76 +356,7 @@ const Dashboard = () => {
         </div>
 
         {/* Basics Section */}
-        <div className="mt-8 grid gap-6 rounded-3xl bg-card p-8">
-          <h2 className="text-xl">Basics</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label>Display name</Label>
-              <Input
-                value={portfolioForm.title || ""}
-                onChange={(e) => updatePortfolioField("title", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Tagline</Label>
-              <Input
-                value={portfolioForm.tagline || ""}
-                onChange={(e) =>
-                  updatePortfolioField("tagline", e.target.value)
-                }
-              />
-            </div>
-            <div>
-              <Label>Greeting</Label>
-              <Input
-                value={portfolioForm.greeting || ""}
-                onChange={(e) =>
-                  updatePortfolioField("greeting", e.target.value)
-                }
-              />
-            </div>
-            <div>
-              <Label>Avatar URL</Label>
-              <Input
-                value={portfolioForm.avatarUrl ?? ""}
-                onChange={(e) =>
-                  updatePortfolioField("avatarUrl", e.target.value)
-                }
-                placeholder="https://..."
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                value={portfolioForm.email || ""}
-                onChange={(e) => updatePortfolioField("email", e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>WhatsApp</Label>
-              <Input
-                value={portfolioForm.whatsapp || ""}
-                onChange={(e) =>
-                  updatePortfolioField("whatsapp", e.target.value)
-                }
-              />
-            </div>
-          </div>
-          <div>
-            <Label>Short bio</Label>
-            <Textarea
-              value={portfolioForm.bioShort || ""}
-              onChange={(e) => updatePortfolioField("bioShort", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Long bio</Label>
-            <Textarea
-              value={portfolioForm.bioLong || ""}
-              onChange={(e) => updatePortfolioField("bioLong", e.target.value)}
-            />
-          </div>
-        </div>
+        <PortfolioForm portfolioForm={portfolioForm} />
 
         {/* Skills Section */}
         <div className="mt-6 rounded-3xl bg-card p-8">
@@ -378,172 +373,32 @@ const Dashboard = () => {
                 ? "No skills added yet"
                 : `${allSkillsForCurrentPortfolio.length} skills added`}
             </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setShowSkillForm(true)}
-            >
+            <Button size="sm" variant="secondary" onClick={handleAddSkill}>
               <Plus className="mr-1 h-4 w-4" /> Add
             </Button>
           </div>
 
           {/* Display all skills */}
           {allSkillsForCurrentPortfolio.length > 0 && (
-            <Table className="mt-4 border-b-2 border-gray-50/10">
-              <TableHeader className="">
-                <TableRow>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Skill Name
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Description
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Skill Level
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Skill Category
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-center text-xs font-medium uppercase">
-                    Action
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-50/10">
-                {allSkillsForCurrentPortfolio?.map((skill: any) => (
-                  <TableRow
-                    key={skill.id}
-                    className="hover:bg-blue-100/10 transition-colors duration-200 cursor-pointer"
-                  >
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {skill.name}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {ellipsis(skill.description, 30)}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {skill.level}%
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {skill.category}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap flex justify-end gap-4">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        // onClick={() => setShowSkillForm(true)}
-                      >
-                        <PenIcon className="mr-1 h-4 w-4" /> Edit
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        // onClick={() => setShowSkillForm(true)}
-                      >
-                        <Trash2 className="mr-1 h-4 w-4" /> Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <SkillsTable
+              allSkillsForCurrentPortfolio={allSkillsForCurrentPortfolio}
+              handleEditSkill={handleEditSkill}
+              handleDeleteSkill={handleDeleteSkill}
+              isPendingDeleteSkill={isPendingDeleteSkill}
+              activeSkillId={activeSkillId}
+            />
           )}
 
           <div className="mt-6 space-y-3">
             {showSkillForm && (
-              <div className="grid grid-cols-[1fr_1fr_1fr] gap-3 bg-background rounded-2xl p-4">
-                <div>
-                  <Label>Skill Name</Label>
-                  <Input
-                    value={skills.name}
-                    onChange={(e) => {
-                      setSkills({ ...skills, name: e.target.value });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label>Skill Level</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={skills.level}
-                    onChange={(e) => {
-                      setSkills({ ...skills, level: Number(e.target.value) });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label>Skill Image URL</Label>
-                  <Input
-                    value={
-                      skills.imageUrl ||
-                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
-                    }
-                    placeholder="Image URL"
-                    onChange={(e) => {
-                      setSkills({ ...skills, imageUrl: e.target.value });
-                    }}
-                  />
-                </div>
-                <div>
-                  <Label>Skill Category</Label>
-                  <Select
-                    value={skills.category}
-                    onValueChange={(value) => {
-                      setSkills({
-                        ...skills,
-                        category: value as SkillCategory,
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Skill Category" />
-                    </SelectTrigger>
-                    <SelectContent className="ring-0 outline-none">
-                      {Object.values(SkillCategory).map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={skills.description || ""}
-                    placeholder="Description"
-                    onChange={(e) => {
-                      setSkills({ ...skills, description: e.target.value });
-                    }}
-                  />
-                </div>
-                <div className="flex justify-end items-end gap-6">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      saveSkill();
-                      setShowSkillForm(false);
-                    }}
-                  >
-                    <SaveIcon size="lg" style={{ width: 23, height: 23 }} />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setShowSkillForm(false)}
-                  >
-                    <Trash2
-                      size="lg"
-                      color="red"
-                      style={{ width: 23, height: 23 }}
-                    />
-                  </Button>
-                </div>
-              </div>
+              <SkillForm
+                skills={skills}
+                saveSkill={saveSkill}
+                handleRemoveSkillForm={handleRemoveSkillForm}
+                isPendingCreateSkill={isPendingCreateSkill}
+                isPendingUpdateSkill={isPendingUpdateSkill}
+                isEditingSkill={isEditingSkill}
+              />
             )}
           </div>
         </div>
@@ -563,204 +418,32 @@ const Dashboard = () => {
                 ? "No projects added yet"
                 : `${allProjectsForCurrentPortfolio.length} projects added`}
             </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setShowProjectForm(true)}
-            >
+            <Button size="sm" variant="secondary" onClick={handleAddProject}>
               <Plus className="mr-1 h-4 w-4" /> Add
             </Button>
           </div>
 
           {/* Display all projects */}
           {allProjectsForCurrentPortfolio.length > 0 && (
-            <Table className="mt-4 border-b-2 border-gray-50/10">
-              <TableHeader className="">
-                <TableRow>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase w-32">
-                    Title
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Description
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase w-32">
-                    Live URL
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Project Start Date
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-left text-xs font-medium uppercase">
-                    Project End Date
-                  </TableHead>
-                  <TableHead className="px-3 py-1 text-center text-xs font-medium uppercase">
-                    Action
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-gray-50/10">
-                {allProjectsForCurrentPortfolio?.map((project: any) => (
-                  <TableRow
-                    key={project.id}
-                    className="hover:bg-blue-100/10 transition-colors duration-200 cursor-pointer"
-                  >
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {project.title}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {ellipsis(project.description, 20)}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {project.liveUrl}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {formatDateWithMoment(project.projectCreatedAt)}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-                      {formatDateWithMoment(project.projectEndAt)}
-                    </TableCell>
-                    <TableCell className="px-3 py-1 whitespace-nowrap flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        // onClick={() => setShowSkillForm(true)}
-                      >
-                        <PenIcon className="mr-1 h-4 w-4" /> Edit
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        // onClick={() => setShowSkillForm(true)}
-                      >
-                        <Trash2 className="mr-1 h-4 w-4" /> Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ProjectsTable
+              allProjectsForCurrentPortfolio={allProjectsForCurrentPortfolio}
+              handleEditProject={handleEditProject}
+              handleDeleteProject={handleDeleteProject}
+              isPendingDeleteProject={isPendingDeleteProject}
+              activeProjectId={activeProjectId}
+            />
           )}
 
           <div className="mt-4 space-y-4">
             {showProjectForm && (
-              <div className="space-y-2 rounded-2xl bg-background p-4">
-                <div className="grid gap-2 md:grid-cols-2">
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={projects.title}
-                      placeholder="Title"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({ ...projects, title: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={
-                        projects.imageUrl ||
-                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
-                      }
-                      placeholder="Image URL"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({ ...projects, imageUrl: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Live URL</Label>
-                    <Input
-                      value={
-                        projects.liveUrl ||
-                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
-                      }
-                      placeholder="Live URL"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({ ...projects, liveUrl: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Project Start Date</Label>
-                    <Input
-                      value={
-                        projects.projectCreatedAt.toISOString().split("T")[0] ||
-                        ""
-                      }
-                      placeholder="Project Start Date"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({
-                          ...projects,
-                          projectCreatedAt: new Date(e.target.value),
-                        });
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Project End Date</Label>
-                    <Input
-                      value={
-                        projects.projectEndAt.toISOString().split("T")[0] || ""
-                      }
-                      placeholder="Project End Date"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({
-                          ...projects,
-                          projectEndAt: new Date(e.target.value),
-                        });
-                      }}
-                    />
-                  </div>
-
-                  <div className="">
-                    <Label>Description</Label>
-                    <Textarea
-                      value={projects.description || ""}
-                      placeholder="Description"
-                      className="mt-1"
-                      onChange={(e) => {
-                        setProjects({
-                          ...projects,
-                          description: e.target.value,
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end items-end gap-6">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      saveProject();
-                      setShowProjectForm(false);
-                    }}
-                  >
-                    <SaveIcon size="lg" style={{ width: 23, height: 23 }} />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setShowProjectForm(false)}
-                  >
-                    <Trash2
-                      size="lg"
-                      color="red"
-                      style={{ width: 23, height: 23 }}
-                    />
-                  </Button>
-                </div>
-              </div>
+              <ProjectForm
+                projects={projects}
+                saveProject={saveProject}
+                handleRemoveProjectForm={handleRemoveProjectForm}
+                isPendingCreateProject={isPendingCreateProject}
+                isPendingUpdateProject={isPendingUpdateProject}
+                isEditingProject={isEditingProject}
+              />
             )}
           </div>
         </div>

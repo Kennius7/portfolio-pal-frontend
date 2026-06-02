@@ -2,10 +2,10 @@
 import { toast } from "sonner";
 import apiClient from "../lib/api";
 import {
-  CreatePortfolioProps,
   CreateProjectProps,
   CreateSkillProps,
   LoginUserProps,
+  Portfolio,
   RegisterUserProps,
 } from "../types/types";
 
@@ -17,15 +17,21 @@ const skillUrl = "skills";
 const projectUrl = "projects";
 
 // Register new user
-export async function registerUser({
-  payload,
-}: {
-  payload: RegisterUserProps;
-}) {
+export async function registerUser(payload: RegisterUserProps) {
   console.log("Payload for User Registration:>>>>>>>>>>>>", payload);
 
+  const transformedPayload = {
+    email: payload.email,
+    password: payload.password,
+    fullName: payload.fullName,
+    username: payload.username,
+  };
+
   try {
-    const response = await client.post(`${authUrl}/register`, payload);
+    const response = await client.post(
+      `${authUrl}/register`,
+      transformedPayload,
+    );
     console.log("User registered successfully:>>>>>>>>>>>>", response.data);
     return response.data;
   } catch (error: unknown) {
@@ -33,23 +39,27 @@ export async function registerUser({
       "User Registration Axios error:>>>>>>>>>>>>",
       (error as any).response.data.message,
     );
-    // toast.error((error as any).response.data.message, {
-    //   position: "top-right",
-    //   duration: 5000,
-    // });
     throw error;
   }
 }
 
 // Login user
-export async function loginUser({ payload }: { payload: LoginUserProps }) {
+export async function loginUser(payload: LoginUserProps) {
+  console.log("Login Payload:>>>>>>>>>>>>", payload);
+  const transformedPayload = {
+    email: payload.email,
+    password: payload.password,
+  };
+
   try {
-    console.log("Login Payload:>>>>>>>>>>>>", payload);
-    const response = await client.post(`${authUrl}/login`, payload);
+    const response = await client.post(`${authUrl}/login`, transformedPayload);
     console.log("User logged in successfully:>>>>>>>>>>>>", response.data);
     return response.data;
   } catch (error: unknown) {
-    console.error("User Login Axios error:>>>>>>>>>>>>", error);
+    console.error(
+      "User Login Axios error:>>>>>>>>>>>>",
+      (error as any).response.data.message,
+    );
     throw error;
   }
 }
@@ -67,7 +77,7 @@ export async function getAllUsers() {
 }
 
 // Create Portfolio
-export async function createPortfolio(payload: CreatePortfolioProps) {
+export async function createPortfolio(payload: Portfolio) {
   console.log("Payload for Portfolio Creation:>>>>>>>>>>>>", payload);
 
   try {
@@ -76,6 +86,21 @@ export async function createPortfolio(payload: CreatePortfolioProps) {
     return response.data;
   } catch (error: unknown) {
     console.error("Portfolio Creation Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
+// Get all portfolios
+export async function getAllPortfolios() {
+  try {
+    const response = await client.get(`${portfolioUrl}/get-all`);
+    console.log(
+      "All Portfolios fetched successfully:>>>>>>>>>>>>",
+      response.data,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    console.error("All Portfolios Fetch Axios error:>>>>>>>>>>>>", error);
     throw error;
   }
 }
@@ -138,11 +163,9 @@ export async function createSkill(payload: CreateSkillProps) {
 }
 
 // List all skills by portfolio id
-export async function getAllSkillsByPortfolioId({
-  portfolioId,
-}: {
-  portfolioId: string;
-}) {
+export async function getAllSkillsByPortfolioId(portfolioId: string) {
+  console.log("Portfolio ID for fetching skills:>>>>>>>>", portfolioId);
+
   try {
     const response = await client.get(`${skillUrl}/portfolio/${portfolioId}`);
     console.log(
@@ -152,6 +175,50 @@ export async function getAllSkillsByPortfolioId({
     return response.data;
   } catch (error: unknown) {
     console.error("Skills fetch Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
+// Update Skill
+export async function updateSkill(payload: any) {
+  console.log("Payload for Skill Update:>>>>>>>>>>>>", payload);
+  const skillId = payload.id;
+
+  if (!skillId) {
+    toast.error("Skill ID is required for update", {
+      position: "top-right",
+      duration: 5000,
+    });
+    throw new Error("Skill ID is required for update");
+  }
+
+  try {
+    const response = await client.patch(`${skillUrl}/${skillId}`, payload);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Skill Update Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
+// Delete skill
+export async function deleteSkill(skillId: string) {
+  console.log("Skill ID for deletion:>>>>>>>>>>>>", skillId);
+
+  if (!skillId) {
+    toast.error("Skill ID is required for deletion", {
+      position: "top-right",
+      duration: 5000,
+    });
+    throw new Error("Skill ID is required for deletion");
+  }
+
+  try {
+    const response = await client.delete(`${skillUrl}/${skillId}`);
+    console.log("Skill deleted successfully:>>>>>>>>>>>>", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Skill deletion axios error:>>>>>>>>>>>>", error);
     throw error;
   }
 }
@@ -171,20 +238,59 @@ export async function createProject(payload: CreateProjectProps) {
 }
 
 // List all projects by portfolio id
-export async function getAllProjectsByPortfolioId({
-  portfolioId,
-}: {
-  portfolioId: string;
-}) {
+export async function getAllProjectsByPortfolioId(portfolioId: string) {
+  console.log("Portfolio ID for fetching projects:>>>>>>>>", portfolioId);
+
   try {
     const response = await client.get(`${projectUrl}/portfolio/${portfolioId}`);
-    console.log(
-      "All projects from portfolio fetched successfully:>>>>>>>>>>>>",
-      response.data,
-    );
     return response.data;
   } catch (error: unknown) {
     console.error("Projects fetch Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
+// Update Project
+export async function updateProject(payload: any) {
+  console.log("Payload for Project Update:>>>>>>>>>>>>", payload);
+  const projectId = payload.id;
+
+  if (!projectId) {
+    toast.error("Project ID is required for update", {
+      position: "top-right",
+      duration: 5000,
+    });
+    throw new Error("Project ID is required for update");
+  }
+
+  try {
+    const response = await client.patch(`${projectUrl}/${projectId}`, payload);
+    console.log("Project updated successfully:>>>>>>>>>>>>", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Project Update Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
+// Delete skill
+export async function deleteProject(projectId: string) {
+  console.log("Project ID for deletion:>>>>>>>>>>>>", projectId);
+
+  if (!projectId) {
+    toast.error("Project ID is required for deletion", {
+      position: "top-right",
+      duration: 5000,
+    });
+    throw new Error("Project ID is required for deletion");
+  }
+
+  try {
+    const response = await client.delete(`${projectUrl}/${projectId}`);
+    console.log("Project deleted successfully:>>>>>>>>>>>>", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Project deletion axios error:>>>>>>>>>>>>", error);
     throw error;
   }
 }

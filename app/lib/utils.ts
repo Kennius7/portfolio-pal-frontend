@@ -22,7 +22,7 @@ export const ellipsis = (text: string, maxLength = 20) => {
 };
 
 export function formatDateWithMoment(
-  isoString: string,
+  isoString: string | Date,
   { format = "MMMM DD, YYYY", timezone, isUTC = false }: FormatOptions = {},
 ): string {
   if (!isoString) return "Invalid date";
@@ -37,3 +37,11 @@ export function formatDateWithMoment(
 
   return date.format(format);
 }
+
+export const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");

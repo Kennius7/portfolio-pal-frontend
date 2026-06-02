@@ -21,10 +21,11 @@ const LoginPage = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { email, password };
     setErr("");
     setLoading(true);
     try {
-      await login({ email, password });
+      await login(payload);
       router.push("/");
     } catch (err: unknown) {
       setErr((err as Error).message);

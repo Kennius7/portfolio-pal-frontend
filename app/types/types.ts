@@ -1,7 +1,8 @@
 import { SkillCategory } from "../constants/skillCategories";
 
 export interface Portfolio {
-  id: string;
+  id?: string;
+  userId?: string;
   title: string;
   theme: string;
   published: boolean;
@@ -41,27 +42,12 @@ export interface Project {
 }
 
 export interface User {
-  id: string;
+  id?: string;
+  userId: string;
   email: string;
   fullName: string;
   username: string;
   portfolio: Portfolio;
-}
-
-export interface CreatePortfolioProps {
-  id?: string;
-  userId?: string;
-  title: string;
-  theme: string;
-  published: boolean;
-  tagline: string;
-  greeting: string;
-  bioShort: string;
-  bioLong: string;
-  whatsapp: string;
-  email: string;
-  avatarUrl: string;
-  resumeUrl: string;
 }
 
 export interface RegisterUserProps {
@@ -93,4 +79,14 @@ export interface CreateProjectProps {
   portfolioId: string;
   projectCreatedAt: Date;
   projectEndAt: Date;
+}
+
+export interface CloudinaryUploadResponse {
+  asset_id: string;
+  public_id: string;
+  secure_url: string;
+  url: string;
+  width: number;
+  height: number;
+  format: string;
 }

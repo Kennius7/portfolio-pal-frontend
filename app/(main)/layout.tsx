@@ -29,19 +29,5 @@ export default function MainLayout({
     }
   }, [isTokenExpiredState, router, setUser]);
 
-  // Still checking auth → show loading spinner
-  // if (loading) {
-  //    return <LoadingComponent />;
-  // }
-
-  // If not authenticated, avoid rendering protected content before redirect
-  // if (!userData) {
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen">
-  //       Redirecting...
-  //     </div>
-  //   );
-  // }
-
   return <>{children}</>;
 }

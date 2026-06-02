@@ -1,15 +1,84 @@
+"use client";
+
 import { Button } from "@/app/components/ui/button";
-import { MessageCircle, ExternalLink, Download } from "lucide-react";
+import { ExternalLink, Download } from "lucide-react";
+// import Image from "next/image";
+import {
+  CreateProjectProps,
+  CreateSkillProps,
+  Portfolio,
+} from "../types/types";
+import SafeImage from "@/app/components/SafeImage";
+import fallbackPics from "../../public/fallback_user_pic.png";
+import SafeRichText from "./SafeRichText";
+import { toast } from "sonner";
+import WhatsappIcon from "../../public/whatsapp_icon1.png";
 import Image from "next/image";
-import { Portfolio } from "../types/types";
+import { Splide, SplideSlide } from "@splidejs/react-splide";
+import "@splidejs/splide/css";
+import { projectSplideOptions, skillSplideOptions } from "../constants/data";
+import { getInitials } from "../lib/utils";
+
+interface Skill extends CreateSkillProps {
+  id: string;
+}
+
+interface Project extends CreateProjectProps {
+  id: string;
+}
+
+interface PortfolioViewProps {
+  portfolio: Portfolio;
+  skills: Skill[];
+  projects: Project[];
+  username: string;
+}
 
 export function PortfolioView({
-  data,
+  portfolio,
+  skills,
+  projects,
   username,
-}: {
-  data: Portfolio;
-  username: string;
-}) {
+}: PortfolioViewProps) {
+  console.log("Skills Data:>>>>>>", skills);
+
+  const handleResumeDownload = async () => {
+    // const downloadUrl = portfolio.resumeUrl;
+    const downloadUrl = `${portfolio.resumeUrl}?fl_attachment`;
+
+    if (!downloadUrl) {
+      toast.error("No resume available");
+      return;
+    }
+
+    try {
+      const response = await fetch(downloadUrl);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch file");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${portfolio.title || "resume"}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error(err);
+      toast.error("Download failed. Opening file instead.");
+
+      // fallback
+      window.open(downloadUrl, "_blank");
+    }
+  };
+
   return (
     <div>
       {/* Hero */}
@@ -17,35 +86,38 @@ export function PortfolioView({
         <div className="mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2">
           <div>
             <span className="inline-block rounded-md bg-gradient-brand px-5 py-2 text-sm font-semibold shadow-glow">
-              {data.greeting}
+              {portfolio.greeting}
             </span>
-            <h1 className="mt-6 text-5xl md:text-6xl">{data.tagline}</h1>
-            <p className="mt-6 max-w-lg text-muted-foreground">
-              {data.bioShort}
-            </p>
-            <p className="mt-4 max-w-lg text-muted-foreground">
-              {data.bioLong}
-            </p>
-            <Button className="mt-8 bg-gradient-brand shadow-glow" size="lg">
-              <MessageCircle className="mr-2 h-4 w-4" /> Chat me on WhatsApp
-            </Button>
+            <h1 className="mt-6 mb-8 text-5xl md:text-6xl">
+              {portfolio.tagline}
+            </h1>
+            <SafeRichText html={portfolio.bioShort} />
+            <button
+              onClick={() =>
+                window.open(`https://wa.me/${portfolio.whatsapp}`, "_blank")
+              }
+              className="mt-8 bg-gradient-brand shadow-glow flex items-center 
+              justify-start gap-3 px-5 py-2.5 rounded-md cursor-pointer"
+            >
+              <Image
+                src={WhatsappIcon}
+                alt="WhatsApp Icon"
+                height={32}
+                width={32}
+              />{" "}
+              Chat me on WhatsApp
+            </button>
           </div>
           <div className="relative mx-auto">
             <div className="absolute inset-0 rounded-full bg-gradient-brand blur-3xl opacity-40" />
             <div className="relative h-72 w-72 overflow-hidden rounded-full border-4 border-accent shadow-glow md:h-96 md:w-96">
-              {data.avatarUrl ? (
-                <Image
-                  src={data.avatarUrl}
-                  alt={data.title}
-                  className="h-full w-full object-cover"
-                  width={500}
-                  height={500}
-                />
-              ) : (
-                <div className="grid h-full w-full place-items-center bg-gradient-brand text-7xl font-black">
-                  {data.title.charAt(0)}
-                </div>
-              )}
+              <SafeImage
+                src={portfolio.avatarUrl || fallbackPics}
+                alt={portfolio.title}
+                className="h-full w-full object-cover"
+                width={500}
+                height={500}
+              />
             </div>
           </div>
         </div>
@@ -54,10 +126,13 @@ export function PortfolioView({
       {/* About */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-5xl rounded-3xl bg-card p-10 shadow-glow md:p-16">
-          <h2 className="text-4xl">About me</h2>
-          <p className="mt-6 text-muted-foreground">{data.bioShort}</p>
-          <p className="mt-4 text-muted-foreground">{data.bioLong}</p>
-          <Button className="mt-8" variant="secondary">
+          <h2 className="text-4xl mb-3">About me</h2>
+          <SafeRichText html={portfolio.bioLong} />
+          <Button
+            onClick={() => handleResumeDownload()}
+            className="mt-8"
+            variant="secondary"
+          >
             <Download className="mr-2 h-4 w-4" /> Download my Resume
           </Button>
         </div>
@@ -65,25 +140,55 @@ export function PortfolioView({
 
       {/* Skills */}
       <section className="px-6 py-16">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-5xl">
           <h2 className="text-4xl">Skills</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Some of the skills and competencies I&apos;ve acquired over the
             years.
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
-            {/* {data.skills.map((s) => (
-              <div
-                key={s.name}
-                className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow"
-              >
-                <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-brand text-xl font-bold">
-                  {s.name.slice(0, 2).toUpperCase()}
-                </div>
-                <p className="mt-3 text-sm font-semibold">{s.name}</p>
-                <p className="text-xs text-muted-foreground">{s.level}%</p>
+          <div
+            // className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6"
+            className="mt-10 flex justify-center"
+          >
+            {skills.length === 0 && (
+              <p className="text-left">No skills added yet.</p>
+            )}
+            {skills.length > 0 && (
+              <div className="w-[98%]">
+                <Splide options={skillSplideOptions}>
+                  {skills.map((s) => (
+                    <SplideSlide key={s.name}>
+                      <div className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow">
+                        <div
+                          className={`mx-auto grid h-24 w-24 place-items-center rounded-full 
+                          text-xl font-bold 
+                          ${s.imageUrl !== "" ? "bg-none" : "bg-gradient-brand"}`}
+                        >
+                          {/* {s.name.slice(0, 2).toUpperCase()} */}
+                          {s.imageUrl !== "" ? (
+                            <SafeImage
+                              src={s.imageUrl}
+                              fallbackSrc={fallbackPics}
+                              width={100}
+                              height={100}
+                              alt="skill image"
+                            />
+                          ) : (
+                            <div className="text-3xl">
+                              {getInitials(s.name)}
+                            </div>
+                          )}
+                        </div>
+                        <p className="mt-3 text-sm font-semibold">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {s.level}%
+                        </p>
+                      </div>
+                    </SplideSlide>
+                  ))}
+                </Splide>
               </div>
-            ))} */}
+            )}
           </div>
         </div>
       </section>
@@ -95,27 +200,49 @@ export function PortfolioView({
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
             A selection of notable work I&apos;ve shipped.
           </p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {/* {data.projects.map((p) => (
-              <div
-                key={p.title}
-                className="group rounded-2xl bg-card p-6 transition hover:shadow-glow"
-              >
-                <div className="aspect-video rounded-lg bg-gradient-brand opacity-80" />
-                <h3 className="mt-5 text-xl">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {p.description}
-                </p>
-                <a
-                  href={p.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-cyan"
-                >
-                  View project <ExternalLink className="h-3.5 w-3.5" />
-                </a>
+          <div
+            // className="mt-12 grid gap-6 md:grid-cols-3"
+            className="mt-10 flex justify-center"
+          >
+            {projects.length === 0 && (
+              <p className="text-left">No projects added yet.</p>
+            )}
+            {projects.length > 0 && (
+              <div className="w-[98%]">
+                <Splide options={projectSplideOptions}>
+                  {projects.map((p) => (
+                    <SplideSlide key={p.title}>
+                      <div className="group rounded-2xl bg-card p-6 transition hover:shadow-glow">
+                        {p.imageUrl !== "" ? (
+                          <SafeImage
+                            src={p.imageUrl}
+                            fallbackSrc={fallbackPics}
+                            width={255}
+                            height={100}
+                            alt="project image"
+                            className="w-full h-[200px] rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="aspect-video rounded-lg bg-gradient-brand opacity-80" />
+                        )}
+                        <h3 className="mt-5 text-xl">{p.title}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {p.description}
+                        </p>
+                        <a
+                          href={p.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-cyan"
+                        >
+                          View project <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    </SplideSlide>
+                  ))}
+                </Splide>
               </div>
-            ))} */}
+            )}
           </div>
         </div>
       </section>

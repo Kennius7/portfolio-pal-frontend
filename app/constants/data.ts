@@ -1,3 +1,5 @@
+import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
+
 export const mockPortfolioData = [
   {
     id: "port-001",
@@ -93,3 +95,72 @@ export const mockPortfolioData = [
     projects: [],
   },
 ];
+
+export const skillSplideOptions = {
+  // width: "90%",
+  perPage: 4,
+  perMove: 1,
+  type: "loop",
+  speed: 1000,
+  keyboard: "global",
+  autoplay: true,
+  autoplaySpeed: 3000,
+  rewind: true,
+  rewindSpeed: 2000,
+  isNavigation: false,
+  arrows: true,
+  focus: 0,
+  start: 0,
+  interval: 4000,
+  easing: "linear",
+  gap: "0.5rem",
+  pagination: false,
+  extensions: { AutoScroll },
+  autoScroll: {
+    speed: 1,
+    pauseOnHover: false,
+    pauseOnFocus: false,
+  },
+  padding: "1rem",
+  mediaQuery: "min",
+  breakpoints: {
+    1000: { perPage: 4 },
+    580: { perPage: 3 },
+    300: { perPage: 2 },
+    100: { perPage: 1 },
+  },
+};
+
+export const projectSplideOptions = {
+  // width: "90%",
+  perPage: 3,
+  perMove: 1,
+  type: "loop",
+  speed: 1000,
+  keyboard: "global",
+  autoplay: true,
+  autoplaySpeed: 3000,
+  rewind: true,
+  rewindSpeed: 2000,
+  isNavigation: false,
+  arrows: true,
+  focus: 0,
+  start: 0,
+  interval: 4000,
+  easing: "linear",
+  gap: "0.5rem",
+  pagination: false,
+  extensions: { AutoScroll },
+  autoScroll: {
+    speed: 1,
+    pauseOnHover: false,
+    pauseOnFocus: false,
+  },
+  padding: "1rem",
+  mediaQuery: "min",
+  breakpoints: {
+    1100: { perPage: 3 },
+    580: { perPage: 2 },
+    100: { perPage: 1 },
+  },
+};

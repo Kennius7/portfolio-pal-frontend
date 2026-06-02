@@ -8,17 +8,18 @@ import { SiteFooter } from "@/app/components/SiteFooter";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/lib/auth";
 import { useGetAllUser } from "./hooks/helpers";
+import { User } from "./types/types";
 
-interface UserFeatured {
-  userId: string;
-  email: string;
-  fullName: string;
-  username: string;
-  portfolio: {
-    name: string;
-    tagline: string;
-  };
-}
+// interface UserFeatured {
+//   userId: string;
+//   email: string;
+//   fullName: string;
+//   username: string;
+//   portfolio: {
+//     name: string;
+//     tagline: string;
+//   };
+// }
 
 const FEATURES = [
   {
@@ -40,7 +41,7 @@ const FEATURES = [
 
 export default function Home() {
   const { user } = useAuth();
-  const [featured, setFeatured] = useState<UserFeatured[]>([]);
+  const [featured, setFeatured] = useState<User[]>([]);
   const { data: allUsers = [], isPending } = useGetAllUser();
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function Home() {
                     ${user ? "text-gradient" : ""}
                     ${
                       user.fullName.length > 15
-                        ? "text-3xl md:text-4xl"
+                        ? "text-3xl md:text-5xl"
                         : "text-3xl md:text-7xl"
                     }
                   `}
@@ -152,12 +153,13 @@ export default function Home() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-lg font-bold uppercase">
-                        {u.fullName.charAt(0)}
+                        {u.fullName.split(" ")[0].charAt(0) +
+                          u.fullName.split(" ")[1].charAt(0)}
                       </div>
                       <div>
-                        <p className="font-semibold">{u.fullName}</p>
+                        <p className="font-semibold">{u.portfolio.title}</p>
                         <p className="text-xs text-muted-foreground">
-                          /u/{u.fullName}
+                          /u/{u.username}
                         </p>
                       </div>
                     </div>

@@ -22,10 +22,11 @@ const SignupPage = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { username, fullName, email, password };
     setErr("");
     setLoading(true);
     try {
-      await register({ username, fullName, email, password });
+      await register(payload);
       router.push("/login");
     } catch (e: any) {
       setErr(e.response.data.message);

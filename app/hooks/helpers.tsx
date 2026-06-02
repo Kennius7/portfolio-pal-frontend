@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getAllPortfolios,
   getAllProjectsByPortfolioId,
   getAllSkillsByPortfolioId,
   getAllUsers,
@@ -18,15 +19,23 @@ export const useGetAllUser = () => {
   });
 };
 
-export const useGetPortfolioById = (portfolioId: string) => {
+export const useGetAllPortfolios = () => {
   return useQuery({
-    queryKey: ["getPortfolioById", portfolioId],
-    queryFn: async () => {
-      return await getPortfolioById(portfolioId);
-    },
+    queryKey: ["getAllPortfolios"], // Fixed key and added limit
+    queryFn: async () => getAllPortfolios(),
     staleTime: 0,
     refetchOnWindowFocus: false,
     enabled: typeof window !== "undefined",
+  });
+};
+
+export const useGetPortfolioById = (portfolioId: string) => {
+  return useQuery({
+    queryKey: ["getPortfolioById", portfolioId],
+    queryFn: () => getPortfolioById(portfolioId),
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    enabled: !!portfolioId,
   });
 };
 
@@ -34,7 +43,7 @@ export const useGetAllSkillsByPortfolioId = (portfolioId: string) => {
   return useQuery({
     queryKey: ["getAllSkillsByPortfolioId", portfolioId],
     queryFn: async () => {
-      return await getAllSkillsByPortfolioId({ portfolioId });
+      return await getAllSkillsByPortfolioId(portfolioId);
     },
     staleTime: 0,
     refetchOnWindowFocus: false,
@@ -46,7 +55,7 @@ export const useGetAllProjectsByPortfolioId = (portfolioId: string) => {
   return useQuery({
     queryKey: ["getAllProjectsByPortfolioId", portfolioId],
     queryFn: async () => {
-      return await getAllProjectsByPortfolioId({ portfolioId });
+      return await getAllProjectsByPortfolioId(portfolioId);
     },
     staleTime: 0,
     refetchOnWindowFocus: false,

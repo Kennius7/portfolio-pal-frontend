@@ -4,6 +4,7 @@ import { AuthProvider } from "@/app/lib/auth";
 import { Toaster } from "sonner";
 import "./globals.css";
 import QueryProvider from "./components/providers/QueryProvider";
+import { DashboardProvider } from "./lib/dashboard-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,10 +25,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <QueryProvider>
           <AuthProvider>
-            {children}
-            <div className="fixed z-60 top-8 right-4">
-              <Toaster position="top-right" richColors />
-            </div>
+            <DashboardProvider>
+              {children}
+              <div className="fixed z-60 top-8 right-4">
+                <Toaster position="top-right" richColors />
+              </div>
+            </DashboardProvider>
           </AuthProvider>
         </QueryProvider>
       </body>
