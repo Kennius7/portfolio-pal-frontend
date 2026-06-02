@@ -36,7 +36,7 @@ export interface Project {
   liveUrl: string;
   portfolioId: string;
   projectCreatedAt: Date;
-  projectEndAt: Date;
+  projectEndAt: Date | "ongoing";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,7 +78,7 @@ export interface CreateProjectProps {
   liveUrl: string;
   portfolioId: string;
   projectCreatedAt: Date;
-  projectEndAt: Date;
+  projectEndAt: Date | "ongoing";
 }
 
 export interface CloudinaryUploadResponse {

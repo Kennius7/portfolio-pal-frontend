@@ -10,6 +10,8 @@ import { CreateSkillProps } from "../types/types";
 import { ellipsis } from "../lib/utils";
 import { Button } from "./ui/button";
 import { Loader2, PenIcon, Trash2 } from "lucide-react";
+import DeleteModal from "./modals/DeleteModal";
+import { useState } from "react";
 
 interface Skill extends CreateSkillProps {
   id: string;
@@ -30,6 +32,24 @@ function SkillsTable({
   isPendingDeleteSkill,
   activeSkillId,
 }: SkillTableProps) {
+  const [open, setOpen] = useState(false);
+  const [skillIdToDelete, setSkillIdToDelete] = useState("");
+
+  const handleOpenModal = (skillId: string) => {
+    setSkillIdToDelete(skillId);
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+    setSkillIdToDelete("");
+  };
+
+  const handleDeleteSelectedSkill = () => {
+    handleDeleteSkill(skillIdToDelete);
+    handleCloseModal();
+  };
+
   return (
     <Table className="mt-4 border-b-2 border-gray-50/10">
       <TableHeader className="">
@@ -81,7 +101,7 @@ function SkillsTable({
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => handleDeleteSkill(skill.id)}
+                onClick={() => handleOpenModal(skill.id)}
               >
                 {isPendingDeleteSkill && skill.id === activeSkillId ? (
                   <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -95,6 +115,12 @@ function SkillsTable({
             </TableCell>
           </TableRow>
         ))}
+        <DeleteModal
+          isOpen={open}
+          onClose={handleCloseModal}
+          handleDelete={handleDeleteSelectedSkill}
+          title="Skill"
+        />
       </TableBody>
     </Table>
   );

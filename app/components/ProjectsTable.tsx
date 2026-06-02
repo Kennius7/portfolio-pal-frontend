@@ -10,6 +10,8 @@ import { ellipsis, formatDateWithMoment } from "../lib/utils";
 import { Button } from "./ui/button";
 import { Loader2, PenIcon, Trash2 } from "lucide-react";
 import { CreateProjectProps } from "../types/types";
+import DeleteModal from "./modals/DeleteModal";
+import { useState } from "react";
 
 interface Project extends CreateProjectProps {
   id: string;
@@ -30,6 +32,24 @@ function ProjectsTable({
   isPendingDeleteProject,
   activeProjectId,
 }: ProjectsTableProps) {
+  const [open, setOpen] = useState(false);
+  const [projectIdToDelete, setProjectIdToDelete] = useState("");
+
+  const handleOpenModal = (projectId: string) => {
+    setProjectIdToDelete(projectId);
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+    setProjectIdToDelete("");
+  };
+
+  const handleDeleteSelectedProject = () => {
+    handleDeleteProject(projectIdToDelete);
+    handleCloseModal();
+  };
+
   return (
     <Table className="mt-4 border-b-2 border-gray-50/10">
       <TableHeader className="">
@@ -73,7 +93,11 @@ function ProjectsTable({
               {formatDateWithMoment(project.projectCreatedAt)}
             </TableCell>
             <TableCell className="px-3 py-1 whitespace-nowrap text-sm">
-              {formatDateWithMoment(project.projectEndAt)}
+              {formatDateWithMoment(
+                project.projectEndAt === "ongoing"
+                  ? new Date()
+                  : project.projectEndAt,
+              )}
             </TableCell>
             <TableCell className="px-3 py-1 whitespace-nowrap flex justify-end gap-2">
               <Button
@@ -87,7 +111,7 @@ function ProjectsTable({
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => handleDeleteProject(project.id)}
+                onClick={() => handleOpenModal(project.id)}
               >
                 {isPendingDeleteProject && project.id === activeProjectId ? (
                   <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -101,6 +125,12 @@ function ProjectsTable({
             </TableCell>
           </TableRow>
         ))}
+        <DeleteModal
+          isOpen={open}
+          onClose={handleCloseModal}
+          handleDelete={handleDeleteSelectedProject}
+          title="Project"
+        />
       </TableBody>
     </Table>
   );

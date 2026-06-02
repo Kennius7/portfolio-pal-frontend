@@ -7,6 +7,7 @@ import { CreateProjectProps } from "../types/types";
 import DateTimePicker from "@/app/components/DateTimePicker";
 import ImageUploader from "./HandleImageUpload";
 import { useProjectsForm } from "../hooks/useProjectForm";
+import { Switch } from "./ui/switch";
 
 interface ProjectFormProps {
   projects: CreateProjectProps;
@@ -54,6 +55,45 @@ function ProjectForm({
         </div>
 
         <div>
+          <DateTimePicker
+            label="Project Start Date"
+            value={projects.projectCreatedAt}
+            onChange={(date) => {
+              updateProjects({ projectCreatedAt: date as Date });
+            }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <DateTimePicker
+            label="Project End Date"
+            value={
+              projects.projectEndAt === "ongoing"
+                ? new Date()
+                : projects.projectEndAt
+            }
+            onChange={(date) => {
+              updateProjects({ projectEndAt: date as Date });
+            }}
+            disabled={projects.projectEndAt === "ongoing"}
+          />
+
+          <div className="flex flex-1 items-center justify-between mt-5">
+            <Label>Ongoing</Label>
+            <Switch
+              className="h-6 w-10"
+              thumbClassName="h-4 w-4"
+              checked={projects.projectEndAt === "ongoing"}
+              onCheckedChange={(checked) => {
+                updateProjects({
+                  projectEndAt: checked ? "ongoing" : new Date(),
+                });
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
           <Label>Live URL</Label>
           <Input
             value={
@@ -64,26 +104,6 @@ function ProjectForm({
             className="mt-1"
             onChange={(e) => {
               updateProjects({ liveUrl: e.target.value });
-            }}
-          />
-        </div>
-
-        <div>
-          <DateTimePicker
-            label="Project Start Date"
-            value={projects.projectCreatedAt}
-            onChange={(date) => {
-              updateProjects({ projectCreatedAt: date as Date });
-            }}
-          />
-        </div>
-
-        <div>
-          <DateTimePicker
-            label="Project End Date"
-            value={projects.projectEndAt}
-            onChange={(date) => {
-              updateProjects({ projectEndAt: date as Date });
             }}
           />
         </div>

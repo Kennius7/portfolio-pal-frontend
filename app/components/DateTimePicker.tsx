@@ -1,109 +1,125 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { DayPicker } from "react-day-picker";
-import { format, setHours, setMinutes } from "date-fns";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { format, setHours, setMinutes, isValid } from "date-fns";
+import { Calendar, Clock } from "lucide-react";
 import { useClickOutside } from "../hooks/useClickOutside";
 
-// Import the base styles required by react-day-picker
 import "react-day-picker/dist/style.css";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface DateTimePickerProps {
   label?: string;
-  onChange: (date: Date | undefined) => void;
-  value: Date | undefined;
+  value?: Date | "ongoing";
+  onChange: (date: Date | "ongoing" | undefined) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function toValidDate(value: unknown): Date | undefined {
+  if (value instanceof Date && isValid(value)) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return isValid(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function applyTime(base: Date, hours: number, minutes: number): Date {
+  return setMinutes(setHours(base, hours), minutes);
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DateTimePicker({
   label = "Pick Date & Time",
-  onChange,
   value,
+  onChange,
+  placeholder = "Select date and time",
+  disabled = false,
 }: DateTimePickerProps) {
-  //   const [selectedDate, setSelectedDate] = useState<Date | undefined>(value);
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
-  //   const selectedDate = value;
-  const selectedDate =
-    typeof value === "string"
-      ? value
-      : value instanceof Date
-        ? value
-        : undefined;
 
-  // Extract current time strings for the inputs
-  const currentHour = selectedDate ? format(selectedDate, "HH") : "12";
-  const currentMinute = selectedDate ? format(selectedDate, "mm") : "00";
+  const selectedDate = toValidDate(value);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useClickOutside(popoverRef as any, () => setIsOpen(false));
+  const hours = selectedDate ? format(selectedDate, "HH") : "12";
+  const minutes = selectedDate ? format(selectedDate, "mm") : "00";
 
-  // Handle outside clicks to close the popover
-  //   useEffect(() => {
-  //     function handleClickOutside(event: MouseEvent) {
-  //       if (
-  //         popoverRef.current &&
-  //         !popoverRef.current.contains(event.target as Node)
-  //       ) {
-  //         setIsOpen(false);
-  //       }
-  //     }
-  //     document.addEventListener("mousedown", handleClickOutside);
-  //     return () => document.removeEventListener("mousedown", handleClickOutside);
-  //   }, []);
+  useClickOutside(popoverRef, () => setIsOpen(false));
 
-  const handleDaySelect = (day?: Date) => {
-    if (!day) return;
+  const toggle = useCallback(() => {
+    if (!disabled) setIsOpen((prev) => !prev);
+  }, [disabled]);
 
-    let updated = setHours(day, parseInt(currentHour, 10));
+  const handleDaySelect = useCallback(
+    (day: Date | undefined) => {
+      if (!day) return;
+      onChange(applyTime(day, parseInt(hours, 10), parseInt(minutes, 10)));
+    },
+    [hours, minutes, onChange],
+  );
 
-    updated = setMinutes(updated, parseInt(currentMinute, 10));
-
-    onChange(updated);
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!value) return;
-
-    const [hours, minutes] = e.target.value.split(":");
-
-    let updated = setHours(value, Number(hours));
-
-    updated = setMinutes(updated, Number(minutes));
-
-    onChange(updated);
-  };
+  const handleTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!selectedDate) return;
+      const [h, m] = e.target.value.split(":").map(Number);
+      onChange(applyTime(selectedDate, h, m));
+    },
+    [selectedDate, onChange],
+  );
 
   return (
     <div className="relative inline-block text-left" ref={popoverRef}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
+      {/* Label */}
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
 
-      {/* Trigger Button */}
+      {/* Trigger */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 
-        rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 
-        focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        onClick={toggle}
+        disabled={disabled}
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        className="
+          inline-flex items-center gap-2 px-4 py-2
+          border border-gray-300 rounded-lg shadow-sm
+          text-sm font-medium bg-white text-gray-700
+          hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500
+          disabled:opacity-50 disabled:cursor-not-allowed
+          transition-colors duration-150
+        "
       >
-        <CalendarIcon className="h-4 w-4 text-gray-400" />
+        <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
         {selectedDate ? (
-          format(selectedDate, "PPP p")
+          <span>{format(selectedDate, "PPP p")}</span>
         ) : (
-          <span className="text-gray-400">Select date and time</span>
+          <span className="text-gray-400">{placeholder}</span>
         )}
       </button>
 
-      {/* Dropdown Popover */}
+      {/* Popover */}
       {isOpen && (
         <div
-          className="absolute left-0 mt-2 z-50 bg-white border border-gray-200 
-            rounded-xl shadow-xl flex flex-col md:flex-row divide-y md:divide-y-0 
-            md:divide-x divide-gray-100 p-2"
+          role="dialog"
+          aria-label="Date and time picker"
+          className="
+            absolute left-0 mt-2 z-50 bg-black
+            border border-gray-200 rounded-xl shadow-xl
+            flex flex-col md:flex-row
+            divide-y md:divide-y-0 md:divide-x divide-gray-100
+            p-2 animate-in fade-in slide-in-from-top-1 duration-1000
+          "
         >
-          {/* Calendar Side */}
+          {/* Calendar */}
           <div className="p-1">
             <DayPicker
               mode="single"
@@ -118,36 +134,43 @@ export default function DateTimePicker({
             />
           </div>
 
-          {/* Time Picker Side */}
+          {/* Time Picker */}
           <div
-            className="p-4 flex flex-col justify-center min-w-[160px] bg-gray-50/50 
-            rounded-b-xl md:rounded-b-none md:rounded-r-xl"
+            className="p-4 flex flex-col justify-center min-w-[160px] 
+            bg-gradient rounded-br-xl rounded-tr-xl"
           >
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
-              <Clock className="h-4 w-4 text-gray-400" />
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+              <Clock className="h-4 w-4 text-gray-500 shrink-0" />
               <span>Select Time</span>
             </div>
+
             <input
               type="time"
-              value={`${currentHour}:${currentMinute}`}
+              value={`${hours}:${minutes}`}
               onChange={handleTimeChange}
-              className="w-full bg-white border border-gray-300 rounded-md px-3 py-1.5 
-              text-sm font-medium shadow-sm focus:outline-none focus:ring-1 
-              focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={!selectedDate}
+              aria-label="Select time"
+              className="
+                w-full bg-gray-900 border border-gray-300 rounded-md
+                px-3 py-1.5 text-sm font-medium shadow-sm
+                focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500
+                disabled:opacity-40 disabled:cursor-not-allowed
+              "
             />
+
             <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">
-              Time is relative to your local timezone browser context.
+              Time shown in your local timezone.
             </p>
           </div>
         </div>
       )}
 
-      {/* Hidden value form integration wrapper */}
+      {/* Hidden input for form integration */}
       {selectedDate && (
         <input
           type="hidden"
           name="dateTime"
-          value={selectedDate instanceof Date ? selectedDate.toISOString() : ""}
+          value={selectedDate.toISOString()}
         />
       )}
     </div>

@@ -17,7 +17,13 @@ import Image from "next/image";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/splide/css";
 import { projectSplideOptions, skillSplideOptions } from "../constants/data";
-import { getInitials } from "../lib/utils";
+import {
+  ellipsis,
+  formatDateWithMoment,
+  getDateDiff,
+  getInitials,
+} from "../lib/utils";
+import SignalStrength from "./SignalStrength";
 
 interface Skill extends CreateSkillProps {
   id: string;
@@ -40,7 +46,7 @@ export function PortfolioView({
   projects,
   username,
 }: PortfolioViewProps) {
-  console.log("Skills Data:>>>>>>", skills);
+  // console.log("Projects Data:>>>>>>", projects[0].description.length);
 
   const handleResumeDownload = async () => {
     // const downloadUrl = portfolio.resumeUrl;
@@ -140,9 +146,9 @@ export function PortfolioView({
 
       {/* Skills */}
       <section className="px-6 py-16">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-5xl w-full flex flex-col items-center">
           <h2 className="text-4xl">Skills</h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
+          <p className="mt-3 max-w-2xl text-muted-foreground text-center">
             Some of the skills and competencies I&apos;ve acquired over the
             years.
           </p>
@@ -151,16 +157,19 @@ export function PortfolioView({
             className="mt-10 flex justify-center"
           >
             {skills.length === 0 && (
-              <p className="text-left">No skills added yet.</p>
+              <p className="text-left my-4">No skills added yet.</p>
             )}
             {skills.length > 0 && (
               <div className="w-[98%]">
                 <Splide options={skillSplideOptions}>
                   {skills.map((s) => (
                     <SplideSlide key={s.name}>
-                      <div className="rounded-2xl bg-card p-5 text-center transition hover:shadow-glow">
+                      <div
+                        className="rounded-2xl bg-card p-5 text-center 
+                        transition hover:shadow-glow relative"
+                      >
                         <div
-                          className={`mx-auto grid h-24 w-24 place-items-center rounded-full 
+                          className={`mx-auto grid h-30 w-30 place-items-center rounded-full 
                           text-xl font-bold 
                           ${s.imageUrl !== "" ? "bg-none" : "bg-gradient-brand"}`}
                         >
@@ -183,6 +192,9 @@ export function PortfolioView({
                         <p className="text-xs text-muted-foreground">
                           {s.level}%
                         </p>
+                        <div className="absolute top-[78%] right-2">
+                          <SignalStrength percentage={s.level} />
+                        </div>
                       </div>
                     </SplideSlide>
                   ))}
@@ -205,38 +217,83 @@ export function PortfolioView({
             className="mt-10 flex justify-center"
           >
             {projects.length === 0 && (
-              <p className="text-left">No projects added yet.</p>
+              <p className="text-left my-4">No projects added yet.</p>
             )}
             {projects.length > 0 && (
               <div className="w-[98%]">
                 <Splide options={projectSplideOptions}>
                   {projects.map((p) => (
                     <SplideSlide key={p.title}>
-                      <div className="group rounded-2xl bg-card p-6 transition hover:shadow-glow">
-                        {p.imageUrl !== "" ? (
-                          <SafeImage
-                            src={p.imageUrl}
-                            fallbackSrc={fallbackPics}
-                            width={255}
-                            height={100}
-                            alt="project image"
-                            className="w-full h-[200px] rounded-lg object-cover"
-                          />
-                        ) : (
-                          <div className="aspect-video rounded-lg bg-gradient-brand opacity-80" />
-                        )}
-                        <h3 className="mt-5 text-xl">{p.title}</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {p.description}
-                        </p>
-                        <a
-                          href={p.liveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-cyan"
-                        >
-                          View project <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
+                      <div className="w-full h-full relative">
+                        <div className="w-full h-full rounded-2xl proj-imgbx">
+                          <div className="proj-txtx px-8 gap-4">
+                            <h4 className="text-white">{p.title}</h4>
+                            <span className="text-white/70">
+                              {ellipsis(p.description, 390)}
+                            </span>
+                          </div>
+
+                          <div className="p-4 bg-card group rounded-2xl hover:shadow-glow">
+                            {p.imageUrl !== "" ? (
+                              <SafeImage
+                                src={p.imageUrl}
+                                fallbackSrc={fallbackPics}
+                                width={255}
+                                height={100}
+                                alt="project image"
+                                className="w-full h-[208px] rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="aspect-video rounded-lg bg-gradient-brand" />
+                            )}
+                            <h3 className="mt-5 text-xl">{p.title}</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {ellipsis(p.description, 110)}
+                            </p>
+                            <div
+                              className={`flex flex-col items-start justify-center gap-2
+                              ${p.description.length < 50 ? "mt-6" : "mt-1"}`}
+                            >
+                              <div className="flex items-center gap-1 text-xs">
+                                From:{" "}
+                                <span className="text-xs font-semibold">
+                                  {formatDateWithMoment(p.projectCreatedAt)}
+                                </span>
+                                - To:{" "}
+                                <span className="text-xs font-semibold">
+                                  {formatDateWithMoment(
+                                    p.projectEndAt === "ongoing"
+                                      ? new Date()
+                                      : p.projectEndAt,
+                                  )}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between w-full">
+                                <div className="text-[12px] text-muted-foreground">
+                                  (
+                                  {getDateDiff(
+                                    p.projectCreatedAt,
+                                    p.projectEndAt === "ongoing"
+                                      ? new Date()
+                                      : p.projectEndAt,
+                                  )}
+                                  )
+                                </div>
+
+                                <a
+                                  href={p.liveUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-cyan"
+                                >
+                                  View project{" "}
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </SplideSlide>
                   ))}
@@ -259,16 +316,19 @@ export function PortfolioView({
           </div>
           <form className="space-y-4">
             <input
-              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
-              placeholder="First Name"
+              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 
+              text-sm text-white placeholder:text-white/70 outline-none"
+              placeholder="Full Name"
             />
             <input
-              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
+              className="w-full rounded-full border border-white/30 bg-white/10 px-5 py-3 
+              text-sm text-white placeholder:text-white/70 outline-none"
               placeholder="Email Address"
             />
             <textarea
               rows={4}
-              className="w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm text-white placeholder:text-white/70 outline-none"
+              className="w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 
+              text-sm text-white placeholder:text-white/70 outline-none"
               placeholder="Message"
             />
             <Button type="button" variant="secondary" className="rounded-full">

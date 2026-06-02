@@ -8,6 +8,12 @@ interface FormatOptions {
   isUTC?: boolean;
 }
 
+// type DateDiff = {
+//   years: number;
+//   months: number;
+//   days: number;
+// };
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -45,3 +51,36 @@ export const getInitials = (name: string) =>
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
     .join("");
+
+export function getDateDiff(start: Date, end: Date): string {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    throw new Error("Invalid date format");
+  }
+
+  // Ensure start <= end
+  const from = startDate <= endDate ? startDate : endDate;
+  const to = startDate <= endDate ? endDate : startDate;
+
+  let years = to.getFullYear() - from.getFullYear();
+  let months = to.getMonth() - from.getMonth();
+  let days = to.getDate() - from.getDate();
+
+  // Adjust negative days
+  if (days < 0) {
+    const prevMonth = new Date(to.getFullYear(), to.getMonth(), 0);
+    days += prevMonth.getDate();
+    months -= 1;
+  }
+
+  // Adjust negative months
+  if (months < 0) {
+    months += 12;
+    years -= 1;
+  }
+
+  const timeElapsed = `${years} ${years === 1 ? "year" : "years"}, ${months} ${months === 1 ? "month" : "months"}, and ${days} ${days === 1 ? "day" : "days"}`;
+  return timeElapsed;
+}
