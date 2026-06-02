@@ -78,11 +78,11 @@ function AdminPage() {
             </h3>
             <ul className="mt-3 space-y-1">
               {users.map((u) => (
-                <li key={u.id}>
+                <li key={u.userId}>
                   <button
-                    onClick={() => select(u.id)}
+                    onClick={() => select(u.userId)}
                     className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
-                      selectedId === u.id
+                      selectedId === u.userId
                         ? "bg-gradient-brand shadow-glow"
                         : "hover:bg-background"
                     }`}
