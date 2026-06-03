@@ -46,13 +46,13 @@ export async function registerUser(payload: RegisterUserProps) {
 // Login user
 export async function loginUser(payload: LoginUserProps) {
   console.log("Login Payload:>>>>>>>>>>>>", payload);
-  const transformedPayload = {
-    email: payload.email,
-    password: payload.password,
-  };
+  // const transformedPayload = {
+  //   email: payload.email,
+  //   password: payload.password,
+  // };
 
   try {
-    const response = await client.post(`${authUrl}/login`, transformedPayload);
+    const response = await client.post(`${authUrl}/login`, payload);
     console.log("User logged in successfully:>>>>>>>>>>>>", response.data);
     return response.data;
   } catch (error: unknown) {

@@ -2,7 +2,12 @@
 
 import { Button } from "@/app/components/ui/button";
 import { ExternalLink, Download } from "lucide-react";
-import { CreateProjectProps, Portfolio } from "../types/types";
+// import Image from "next/image";
+import {
+  CreateProjectProps,
+  CreateSkillProps,
+  Portfolio,
+} from "../types/types";
 import SafeImage from "@/app/components/SafeImage";
 import fallbackPics from "../../public/fallback_user_pic.png";
 import SafeRichText from "./SafeRichText";
@@ -11,12 +16,18 @@ import WhatsappIcon from "../../public/whatsapp_icon1.png";
 import Image from "next/image";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/splide/css";
-import { projectSplideOptions } from "../constants/data";
-import { ellipsis, formatDateWithMoment, getDateDiff } from "../lib/utils";
-import { SkillsSection } from "./SkillsSection";
+import { projectSplideOptions, skillSplideOptions } from "../constants/data";
+import {
+  ellipsis,
+  formatDateWithMoment,
+  getDateDiff,
+  getInitials,
+} from "../lib/utils";
+import SignalStrength from "./SignalStrength";
 
-// ── Re-export the augmented types so callers don't need to import separately ──
-// export type { SkillsSectionProps } from "./SkillsSection";
+interface Skill extends CreateSkillProps {
+  id: string;
+}
 
 interface Project extends CreateProjectProps {
   id: string;
@@ -24,8 +35,7 @@ interface Project extends CreateProjectProps {
 
 interface PortfolioViewProps {
   portfolio: Portfolio;
-  // `skills` is forwarded directly to <SkillsSection> — see SkillsSection.tsx
-  skills: React.ComponentProps<typeof SkillsSection>["skills"];
+  skills: Skill[];
   projects: Project[];
   username: string;
 }
@@ -36,7 +46,10 @@ export function PortfolioView({
   projects,
   username,
 }: PortfolioViewProps) {
+  // console.log("Projects Data:>>>>>>", projects[0].description.length);
+
   const handleResumeDownload = async () => {
+    // const downloadUrl = portfolio.resumeUrl;
     const downloadUrl = `${portfolio.resumeUrl}?fl_attachment`;
 
     if (!downloadUrl) {
@@ -46,7 +59,10 @@ export function PortfolioView({
 
     try {
       const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error("Failed to fetch file");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch file");
+      }
 
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
@@ -54,20 +70,24 @@ export function PortfolioView({
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = `${portfolio.title || "resume"}.pdf`;
+
       document.body.appendChild(link);
       link.click();
+
       link.remove();
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error(err);
       toast.error("Download failed. Opening file instead.");
+
+      // fallback
       window.open(downloadUrl, "_blank");
     }
   };
 
   return (
     <div>
-      {/* ── Hero ──────────────────────────────────────────────────────── */}
+      {/* Hero */}
       <section className="relative overflow-hidden px-6 py-20">
         <div className="mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2">
           <div>
@@ -90,7 +110,7 @@ export function PortfolioView({
                 alt="WhatsApp Icon"
                 height={32}
                 width={32}
-              />
+              />{" "}
               Chat me on WhatsApp
             </button>
           </div>
@@ -109,13 +129,13 @@ export function PortfolioView({
         </div>
       </section>
 
-      {/* ── About ─────────────────────────────────────────────────────── */}
+      {/* About */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-5xl rounded-3xl bg-card p-10 shadow-glow md:p-16">
           <h2 className="text-4xl mb-3">About me</h2>
           <SafeRichText html={portfolio.bioLong} />
           <Button
-            onClick={handleResumeDownload}
+            onClick={() => handleResumeDownload()}
             className="mt-8"
             variant="secondary"
           >
@@ -124,20 +144,78 @@ export function PortfolioView({
         </div>
       </section>
 
-      {/* ── Skills (refactored) ───────────────────────────────────────── */}
-      <SkillsSection skills={skills} />
+      {/* Skills */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-5xl w-full flex flex-col items-center">
+          <h2 className="text-4xl">Skills</h2>
+          <p className="mt-3 max-w-2xl text-muted-foreground text-center">
+            Some of the skills and competencies I&apos;ve acquired over the
+            years.
+          </p>
+          <div
+            // className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6"
+            className="mt-10 flex justify-center"
+          >
+            {skills.length === 0 && (
+              <p className="text-left my-4">No skills added yet.</p>
+            )}
+            {skills.length > 0 && (
+              <div className="w-[98%]">
+                <Splide options={skillSplideOptions}>
+                  {skills.map((s) => (
+                    <SplideSlide key={s.name}>
+                      <div className="w-[100px] bg-primary rounded-2xl p-5 transition hover:shadow-glow relative">
+                        <div
+                          className={`mx-auto grid h-30 w-30 place-items-center rounded-full 
+                          text-xl font-bold 
+                          ${s.imageUrl !== "" ? "bg-none" : "bg-gradient-brand"}`}
+                        >
+                          {s.imageUrl !== "" ? (
+                            <SafeImage
+                              src={s.imageUrl}
+                              fallbackSrc={fallbackPics}
+                              width={100}
+                              height={100}
+                              alt="skill image"
+                            />
+                          ) : (
+                            <div className="text-3xl">
+                              {getInitials(s.name)}
+                            </div>
+                          )}
+                        </div>
+                        <p className="mt-3 text-sm font-semibold">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {s.level}%
+                        </p>
+                        <div className="absolute top-[78%] right-2">
+                          <SignalStrength percentage={s.level} />
+                        </div>
+                      </div>
+                    </SplideSlide>
+                  ))}
+                </Splide>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
-      {/* ── Projects ──────────────────────────────────────────────────── */}
+      {/* Projects */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-7xl">
           <h2 className="text-center text-4xl">Projects</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
             A selection of notable work I&apos;ve shipped.
           </p>
-          <div className="mt-10 flex justify-center">
-            {projects.length === 0 ? (
+          <div
+            // className="mt-12 grid gap-6 md:grid-cols-3"
+            className="mt-10 flex justify-center"
+          >
+            {projects.length === 0 && (
               <p className="text-left my-4">No projects added yet.</p>
-            ) : (
+            )}
+            {projects.length > 0 && (
               <div className="w-[98%]">
                 <Splide options={projectSplideOptions}>
                   {projects.map((p) => (
@@ -150,6 +228,7 @@ export function PortfolioView({
                               {ellipsis(p.description, 390)}
                             </span>
                           </div>
+
                           <div className="p-4 bg-card group rounded-2xl hover:shadow-glow">
                             {p.imageUrl !== "" ? (
                               <SafeImage
@@ -185,6 +264,7 @@ export function PortfolioView({
                                   )}
                                 </span>
                               </div>
+
                               <div className="flex items-center justify-between w-full">
                                 <div className="text-[12px] text-muted-foreground">
                                   (
@@ -196,6 +276,7 @@ export function PortfolioView({
                                   )}
                                   )
                                 </div>
+
                                 <a
                                   href={p.liveUrl}
                                   target="_blank"
@@ -219,7 +300,7 @@ export function PortfolioView({
         </div>
       </section>
 
-      {/* ── Contact ───────────────────────────────────────────────────── */}
+      {/* Contact */}
       <section className="bg-gradient-contact px-6 py-20">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-2">
           <div>

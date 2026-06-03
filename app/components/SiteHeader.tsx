@@ -10,6 +10,7 @@ import Image from "next/image";
 export function SiteHeader() {
   const { user, isAdmin, logout, isHydrated } = useAuth();
   const router = useRouter();
+  console.log("User data:>>>>>", user, "Is hydrated?>>>", isHydrated);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/40 bg-nav/90 backdrop-blur">
