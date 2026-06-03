@@ -1,22 +1,16 @@
 "use client";
 
 import { Button } from "@/app/components/ui/button";
-import { ExternalLink, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { CreateProjectProps, Portfolio } from "../types/types";
 import SafeImage from "@/app/components/SafeImage";
 import fallbackPics from "../../public/fallback_user_pic.png";
 import SafeRichText from "./SafeRichText";
-import { toast } from "sonner";
 import WhatsappIcon from "../../public/whatsapp_icon1.png";
 import Image from "next/image";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
-import "@splidejs/splide/css";
-import { projectSplideOptions } from "../constants/data";
-import { ellipsis, formatDateWithMoment, getDateDiff } from "../lib/utils";
 import { SkillsSection } from "./SkillsSection";
-
-// ── Re-export the augmented types so callers don't need to import separately ──
-// export type { SkillsSectionProps } from "./SkillsSection";
+import ProjectsSection from "./ProjectSection";
+import { handleResumeDownload } from "../lib/utils";
 
 interface Project extends CreateProjectProps {
   id: string;
@@ -27,43 +21,14 @@ interface PortfolioViewProps {
   // `skills` is forwarded directly to <SkillsSection> — see SkillsSection.tsx
   skills: React.ComponentProps<typeof SkillsSection>["skills"];
   projects: Project[];
-  username: string;
 }
 
 export function PortfolioView({
   portfolio,
   skills,
   projects,
-  username,
 }: PortfolioViewProps) {
-  const handleResumeDownload = async () => {
-    const downloadUrl = `${portfolio.resumeUrl}?fl_attachment`;
-
-    if (!downloadUrl) {
-      toast.error("No resume available");
-      return;
-    }
-
-    try {
-      const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error("Failed to fetch file");
-
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${portfolio.title || "resume"}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error(err);
-      toast.error("Download failed. Opening file instead.");
-      window.open(downloadUrl, "_blank");
-    }
-  };
+  console.log("Portfolio Data:>>>>>>>", portfolio);
 
   return (
     <div>
@@ -115,7 +80,7 @@ export function PortfolioView({
           <h2 className="text-4xl mb-3">About me</h2>
           <SafeRichText html={portfolio.bioLong} />
           <Button
-            onClick={handleResumeDownload}
+            onClick={() => handleResumeDownload(portfolio)}
             className="mt-8"
             variant="secondary"
           >
@@ -127,97 +92,8 @@ export function PortfolioView({
       {/* ── Skills (refactored) ───────────────────────────────────────── */}
       <SkillsSection skills={skills} />
 
-      {/* ── Projects ──────────────────────────────────────────────────── */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-center text-4xl">Projects</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-            A selection of notable work I&apos;ve shipped.
-          </p>
-          <div className="mt-10 flex justify-center">
-            {projects.length === 0 ? (
-              <p className="text-left my-4">No projects added yet.</p>
-            ) : (
-              <div className="w-[98%]">
-                <Splide options={projectSplideOptions}>
-                  {projects.map((p) => (
-                    <SplideSlide key={p.title}>
-                      <div className="w-full h-full relative">
-                        <div className="w-full h-full rounded-2xl proj-imgbx">
-                          <div className="proj-txtx px-8 gap-4">
-                            <h4 className="text-white">{p.title}</h4>
-                            <span className="text-white/70">
-                              {ellipsis(p.description, 390)}
-                            </span>
-                          </div>
-                          <div className="p-4 bg-card group rounded-2xl hover:shadow-glow">
-                            {p.imageUrl !== "" ? (
-                              <SafeImage
-                                src={p.imageUrl}
-                                fallbackSrc={fallbackPics}
-                                width={255}
-                                height={100}
-                                alt="project image"
-                                className="w-full h-[208px] rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="aspect-video rounded-lg bg-gradient-brand" />
-                            )}
-                            <h3 className="mt-5 text-xl">{p.title}</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {ellipsis(p.description, 110)}
-                            </p>
-                            <div
-                              className={`flex flex-col items-start justify-center gap-2
-                              ${p.description.length < 50 ? "mt-6" : "mt-1"}`}
-                            >
-                              <div className="flex items-center gap-1 text-xs">
-                                From:{" "}
-                                <span className="text-xs font-semibold">
-                                  {formatDateWithMoment(p.projectCreatedAt)}
-                                </span>
-                                - To:{" "}
-                                <span className="text-xs font-semibold">
-                                  {formatDateWithMoment(
-                                    p.projectEndAt === "ongoing"
-                                      ? new Date()
-                                      : p.projectEndAt,
-                                  )}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between w-full">
-                                <div className="text-[12px] text-muted-foreground">
-                                  (
-                                  {getDateDiff(
-                                    p.projectCreatedAt,
-                                    p.projectEndAt === "ongoing"
-                                      ? new Date()
-                                      : p.projectEndAt,
-                                  )}
-                                  )
-                                </div>
-                                <a
-                                  href={p.liveUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-cyan"
-                                >
-                                  View project{" "}
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </SplideSlide>
-                  ))}
-                </Splide>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* ── Projects ── */}
+      <ProjectsSection projects={projects} />
 
       {/* ── Contact ───────────────────────────────────────────────────── */}
       <section className="bg-gradient-contact px-6 py-20">
@@ -225,8 +101,9 @@ export function PortfolioView({
           <div>
             <h2 className="text-5xl">Get In Touch</h2>
             <p className="mt-4 max-w-md text-white/80">
-              Want to share this portfolio? Send <strong>/u/{username}</strong>{" "}
-              to anyone — they can view but not edit.
+              Want to share this portfolio? Send{" "}
+              <strong>/p/{portfolio.slug}</strong> to anyone — they can view but
+              not edit.
             </p>
           </div>
           <form className="space-y-4">

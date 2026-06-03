@@ -123,6 +123,26 @@ export async function getPortfolioById(portfolioId: string) {
   }
 }
 
+// Get Portfolio Data by Slug
+export async function getPortfolioBySlug(portfolioSlug: string) {
+  console.log("Portfolio Slug for Fetch:>>>>>>>>>>>>", portfolioSlug);
+
+  if (!portfolioSlug) {
+    throw new Error("Portfolio Slug is required for fetch");
+  }
+
+  try {
+    const response = await client.get(
+      `${portfolioUrl}/public/${portfolioSlug}`,
+    );
+    console.log("Portfolio fetched successfully:>>>>>>>>>>>>", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("Portfolio Fetch Axios error:>>>>>>>>>>>>", error);
+    throw error;
+  }
+}
+
 // Update Portfolio
 export async function updatePortfolio(payload: any) {
   console.log("Payload for Portfolio Update:>>>>>>>>>>>>", payload);

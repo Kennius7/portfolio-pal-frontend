@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/lib/auth";
-import { Eye, Save, Plus, Share2, Loader2 } from "lucide-react";
+import { Eye, Save, Plus, Share2, Loader2, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import LoadingComponent from "@/app/components/LoadingComponent";
 import {
@@ -65,8 +65,9 @@ const initialProjectState = {
 const mapPortfolioToForm = (portfolio: Portfolio): Portfolio => ({
   id: portfolio.id,
   title: portfolio.title,
+  slug: portfolio.slug,
   theme: portfolio.theme,
-  published: portfolio.published,
+  isPublished: portfolio.isPublished,
   tagline: portfolio.tagline,
   greeting: portfolio.greeting,
   bioShort: portfolio.bioShort,
@@ -89,7 +90,7 @@ const Dashboard = () => {
     setProjects,
   } = useDashboard();
 
-  const [saved, setSaved] = useState(false);
+  // const [saved, setSaved] = useState(false);
   const [showSkillForm, setShowSkillForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [isEditingSkill, setIsEditingSkill] = useState(false);
@@ -97,6 +98,9 @@ const Dashboard = () => {
   const [activeSkillId, setActiveSkillId] = useState("");
   const [activeProjectId, setActiveProjectId] = useState("");
   const portfolioId = user?.portfolio?.id || "";
+  // const [isPublishing, setIsPublishing] = useState(false);
+  // const [isSavingPortfolio, setIsSavingPortfolio] = useState(false);
+  console.log("Portfolio Data:>>>>>>>>>>>>>>>>>", portfolioForm?.isPublished);
 
   // Fetching data hooks
   const { data: portfolioData } = useGetPortfolioById(portfolioId);
@@ -108,9 +112,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (!portfolioData?.id) return;
 
-    setPortfolioForm((prev) => prev ?? mapPortfolioToForm(portfolioData));
+    setPortfolioForm(mapPortfolioToForm(portfolioData));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [portfolioData?.id]);
+  }, [JSON.stringify(portfolioData), setPortfolioForm]);
 
   useEffect(() => {
     if (!portfolioId) return;
@@ -132,6 +136,26 @@ const Dashboard = () => {
     mutationKey: ["updatePortfolio"],
     mutationFn: updatePortfolio,
     successMessage: "Portfolio updated successfully!",
+    invalidateKeys: [["getPortfolioById"]],
+  });
+
+  const {
+    mutate: publishPortfolioMutation,
+    isPending: isPendingPublishPortfolio,
+  } = useApiMutation({
+    mutationKey: ["updatePortfolio"],
+    mutationFn: updatePortfolio,
+    successMessage: "Portfolio published successfully!",
+    invalidateKeys: [["getPortfolioById"]],
+  });
+
+  const {
+    mutate: unpublishPortfolioMutation,
+    isPending: isPendingUnpublishPortfolio,
+  } = useApiMutation({
+    mutationKey: ["updatePortfolio"],
+    mutationFn: updatePortfolio,
+    successMessage: "Portfolio unpublished successfully!",
     invalidateKeys: [["getPortfolioById"]],
   });
 
@@ -186,36 +210,6 @@ const Dashboard = () => {
       successMessage: "Project deleted successfully!",
       invalidateKeys: [["getAllProjectsByPortfolioId"]],
     });
-
-  // Type-safe property updates for base portfolio properties
-  // const updatePortfolioField = <K extends keyof Portfolio>(
-  //   key: K,
-  //   value: Portfolio[K],
-  // ) => {
-  //   setPortfolioForm((prev) => (prev ? { ...prev, [key]: value } : null));
-  // };
-
-  // const updateSkillField = <K extends keyof CreateSkillProps>(
-  //   field: K,
-  //   value: CreateSkillProps[K],
-  // ) => {
-  //   setSkills((prev) => ({ ...prev, [field]: value }));
-  // };
-
-  // const updateProjectField = <K extends keyof CreateProjectProps>(
-  //   field: K,
-  //   value: CreateProjectProps[K],
-  // ) => {
-  //   setProjects((prev) => ({ ...prev, [field]: value }));
-  // };
-
-  // const updateField = <T extends Record<string, any>, K extends keyof T>(
-  //   setter: React.Dispatch<React.SetStateAction<T | null>>,
-  //   field: K,
-  //   value: T[K],
-  // ) => {
-  //   setter((prev) => (prev ? { ...prev, [field]: value } : prev));
-  // };
 
   const saveSkill = () => {
     if (isEditingSkill) {
@@ -277,21 +271,29 @@ const Dashboard = () => {
     setProjects({ ...initialProjectState, portfolioId });
   };
 
-  const savePortfolio = () => {
+  const savePortfolio = useCallback(() => {
     updatePortfolioMutation(portfolioForm);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 5000);
-  };
+  }, [portfolioForm, updatePortfolioMutation]);
+
+  const publishPortfolio = useCallback(() => {
+    publishPortfolioMutation({ ...portfolioForm, isPublished: true });
+  }, [portfolioForm, publishPortfolioMutation]);
+
+  const unpublishPortfolio = useCallback(() => {
+    unpublishPortfolioMutation({ ...portfolioForm, isPublished: false });
+  }, [portfolioForm, unpublishPortfolioMutation]);
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
 
     if (user) {
-      return `${window.location.origin}/u/${user.username}`;
+      // return `${window.location.origin}/u/${user.username}`;
+      return `${window.location.origin}/p/${portfolioForm?.slug}`;
     }
 
-    return `${window.location.origin}/u/...`;
-  }, [user]);
+    // return `${window.location.origin}/u/...`;
+    return `${window.location.origin}/p/...`;
+  }, [user, portfolioForm?.slug]);
 
   if (!user || !portfolioForm) {
     return (
@@ -315,11 +317,45 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/u/${user.username}`}>
+            <Link
+              // href={`/u/${user.username}`}
+              href={`/p/${portfolioForm?.slug}`}
+            >
               <Button variant="secondary">
                 <Eye className="mr-2 h-4 w-4" /> Preview
               </Button>
             </Link>
+
+            {portfolioForm.isPublished ? (
+              <Button
+                onClick={unpublishPortfolio}
+                className="bg-gradient-brand shadow-glow"
+              >
+                {isPendingUnpublishPortfolio ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="mr-2 h-4 w-4" />
+                )}{" "}
+                {isPendingUnpublishPortfolio
+                  ? "Unpublishing..."
+                  : "Unpublish Portfolio"}
+              </Button>
+            ) : (
+              <Button
+                onClick={publishPortfolio}
+                className="bg-gradient-brand shadow-glow"
+              >
+                {isPendingPublishPortfolio ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="mr-2 h-4 w-4" />
+                )}{" "}
+                {isPendingPublishPortfolio
+                  ? "Publishing..."
+                  : "Publish Portfolio"}
+              </Button>
+            )}
+
             <Button
               onClick={savePortfolio}
               className="bg-gradient-brand shadow-glow"
@@ -329,11 +365,7 @@ const Dashboard = () => {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}{" "}
-              {isPendingUpdatePortfolio
-                ? "Saving..."
-                : saved
-                  ? "Saved!"
-                  : "Save changes"}
+              {isPendingUpdatePortfolio ? "Saving..." : "Save Portfolio"}
             </Button>
           </div>
         </div>

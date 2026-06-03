@@ -28,6 +28,13 @@ function PortfolioForm({ portfolioForm }: PortfolioFormProps) {
           />
         </div>
         <div>
+          <Label>Slug</Label>
+          <Input
+            value={portfolioForm.slug || ""}
+            onChange={(e) => updatePortfolio({ slug: e.target.value })}
+          />
+        </div>
+        <div>
           <Label>Tagline</Label>
           <Input
             value={portfolioForm.tagline || ""}

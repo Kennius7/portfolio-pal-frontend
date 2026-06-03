@@ -3,9 +3,10 @@ import { SkillCategory } from "../constants/skillCategories";
 export interface Portfolio {
   id?: string;
   userId?: string;
+  slug: string;
   title: string;
   theme: string;
-  published: boolean;
+  isPublished?: boolean;
   tagline: string;
   greeting: string;
   bioShort: string;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -5,16 +6,10 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { SiteFooter } from "@/app/components/SiteFooter";
 import { PortfolioView } from "@/app/components/PortfolioView";
 import { Button } from "@/app/components/ui/button";
-import { Edit, Eye, Share2 } from "lucide-react";
+import { Eye, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { User } from "@/app/types/types";
-import { useAuth } from "@/app/lib/auth";
-import {
-  useGetAllProjectsByPortfolioId,
-  useGetAllSkillsByPortfolioId,
-  useGetAllUser,
-} from "@/app/hooks/helpers";
+import { useGetPortfolioBySlug } from "@/app/hooks/helpers";
 import LoadingComponent from "@/app/components/LoadingComponent";
 
 const NotFoundComponent = () => {
@@ -24,7 +19,7 @@ const NotFoundComponent = () => {
       <div className="mx-auto max-w-md px-6 py-24 text-center">
         <h1 className="text-4xl">Portfolio not found</h1>
         <p className="mt-3 text-muted-foreground">
-          That user doesn&apos;t exist.
+          This porfolio isn&apos;t published or this user doesn&apos;t exist.
         </p>
         <Link href="/" className="mt-6 inline-block">
           <Button className="bg-gradient-brand">Go home</Button>
@@ -35,35 +30,45 @@ const NotFoundComponent = () => {
 };
 
 const PublicPortfolio = () => {
-  const { username } = useParams();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<User | null>(null);
+  const { slug } = useParams();
+  // const { user } = useAuth();
+  // const [profile, setProfile] = useState<User | null>(null);
+  const [portfolio, setPortfolio] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
-  const isOwner = user?.id === profile?.userId;
-  const portfolioId = profile?.portfolio?.id || "";
-  const { data: allUsers = [], isPending: isPendingAllUsers } = useGetAllUser();
-  const {
-    data: allSkillsForCurrentPortfolio = [],
-    isPending: isPendingAllSkills,
-  } = useGetAllSkillsByPortfolioId(portfolioId);
-  const {
-    data: allProjectsForCurrentPortfolio = [],
-    isPending: isPendingAllProjects,
-  } = useGetAllProjectsByPortfolioId(portfolioId);
-  const filteredUserByUsername = allUsers.filter(
-    (user: User) => user.username === username,
-  )[0];
+  // const isOwner = user?.id === profile?.userId;
+  // const portfolioId = profile?.portfolio?.id || "";
+  const { data: portfolioBySlug, isPending: isPendingPortfolioBySlug } =
+    useGetPortfolioBySlug(slug as string);
+  console.log("Portfolio by slug:>>>>>>>>>>>>>", portfolioBySlug);
+  // const { data: allUsers = [], isPending: isPendingAllUsers } = useGetAllUser();
+  // const {
+  //   data: allSkillsForCurrentPortfolio = [],
+  //   isPending: isPendingAllSkills,
+  // } = useGetAllSkillsByPortfolioId(portfolioId);
+  // const {
+  //   data: allProjectsForCurrentPortfolio = [],
+  //   isPending: isPendingAllProjects,
+  // } = useGetAllProjectsByPortfolioId(portfolioId);
+  // const filteredUserByUsername = allUsers.filter(
+  //   (user: User) => user.username === username,
+  // )[0];
 
-  const isLoading =
-    isPendingAllUsers || isPendingAllSkills || isPendingAllProjects;
+  // const isLoading =
+  //   isPendingAllUsers || isPendingAllSkills || isPendingAllProjects;
+
+  // useEffect(() => {
+  //   if (!filteredUserByUsername) return;
+  //   // eslint-disable-next-line react-hooks/set-state-in-effect
+  //   setProfile(filteredUserByUsername);
+  // }, [filteredUserByUsername]);
 
   useEffect(() => {
-    if (!filteredUserByUsername) return;
+    if (!portfolioBySlug) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProfile(filteredUserByUsername);
-  }, [filteredUserByUsername]);
+    setPortfolio(portfolioBySlug);
+  }, [portfolioBySlug]);
 
-  if (isLoading)
+  if (isPendingPortfolioBySlug)
     return (
       <div className="min-h-screen">
         <SiteHeader />
@@ -71,7 +76,7 @@ const PublicPortfolio = () => {
       </div>
     );
 
-  if (!profile)
+  if (!portfolio)
     return (
       <div className="min-h-screen">
         <NotFoundComponent />
@@ -96,20 +101,19 @@ const PublicPortfolio = () => {
             <Share2 className="mr-1.5 h-4 w-4" />{" "}
             {copied ? "Copied!" : "Share link"}
           </Button>
-          {isOwner && (
+          {/* {isOwner && (
             <Link href="/dashboard">
               <Button size="sm" className="bg-gradient-brand">
                 <Edit className="mr-1.5 h-4 w-4" /> Edit
               </Button>
             </Link>
-          )}
+          )} */}
         </div>
       </div>
       <PortfolioView
-        portfolio={profile.portfolio}
-        skills={allSkillsForCurrentPortfolio}
-        projects={allProjectsForCurrentPortfolio}
-        // username={profile.username}
+        portfolio={portfolio}
+        skills={portfolio.skills}
+        projects={portfolio.projects}
       />
       <SiteFooter />
     </div>

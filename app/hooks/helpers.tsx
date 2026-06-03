@@ -5,6 +5,7 @@ import {
   getAllSkillsByPortfolioId,
   getAllUsers,
   getPortfolioById,
+  getPortfolioBySlug,
 } from "../services/api";
 
 export const useGetAllUser = () => {
@@ -36,6 +37,16 @@ export const useGetPortfolioById = (portfolioId: string) => {
     staleTime: 0,
     refetchOnWindowFocus: false,
     enabled: !!portfolioId,
+  });
+};
+
+export const useGetPortfolioBySlug = (portfolioSlug: string) => {
+  return useQuery({
+    queryKey: ["getPortfolioBySlug", portfolioSlug],
+    queryFn: () => getPortfolioBySlug(portfolioSlug),
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    enabled: !!portfolioSlug,
   });
 };
 
