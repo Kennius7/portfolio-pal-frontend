@@ -11,6 +11,8 @@ import Image from "next/image";
 import { SkillsSection } from "./SkillsSection";
 import ProjectsSection from "./ProjectSection";
 import { handleResumeDownload } from "../lib/utils";
+import { useDashboard } from "../lib/dashboard-context";
+import { useEffect } from "react";
 
 interface Project extends CreateProjectProps {
   id: string;
@@ -29,17 +31,27 @@ export function PortfolioView({
   projects,
 }: PortfolioViewProps) {
   console.log("Portfolio Data:>>>>>>>", portfolio);
+  const { setIsPreviewing } = useDashboard();
+
+  useEffect(() => {
+    setIsPreviewing(true);
+
+    return () => {
+      setIsPreviewing(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 py-20">
+      <section className="relative overflow-hidden px-6 md:py-20 py-12">
         <div className="mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2">
           <div>
             <span className="inline-block rounded-md bg-gradient-brand px-5 py-2 text-sm font-semibold shadow-glow">
               {portfolio.greeting}
             </span>
-            <h1 className="mt-6 mb-8 text-5xl md:text-6xl">
+            <h1 className="mt-6 mb-8 text-4xl md:text-6xl">
               {portfolio.tagline}
             </h1>
             <SafeRichText html={portfolio.bioShort} />

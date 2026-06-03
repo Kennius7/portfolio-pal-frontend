@@ -4,7 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { Button } from "@/app/components/ui/button";
 import { useAuth } from "@/app/lib/auth";
-import { Eye, Save, Plus, Share2, Loader2, UploadCloud } from "lucide-react";
+import {
+  Eye,
+  Save,
+  Plus,
+  Share2,
+  Loader2,
+  UploadCloud,
+  Check,
+} from "lucide-react";
 import Link from "next/link";
 import LoadingComponent from "@/app/components/LoadingComponent";
 import {
@@ -34,6 +42,7 @@ import ProjectsTable from "@/app/components/ProjectsTable";
 import ProjectForm from "@/app/components/ProjectForm";
 import PortfolioForm from "@/app/components/PortfolioForm";
 import { useDashboard } from "@/app/lib/dashboard-context";
+import { cn } from "@/app/lib/utils";
 
 interface Skill extends CreateSkillProps {
   id: string;
@@ -95,6 +104,7 @@ const Dashboard = () => {
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [isEditingSkill, setIsEditingSkill] = useState(false);
   const [isEditingProject, setIsEditingProject] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [activeSkillId, setActiveSkillId] = useState("");
   const [activeProjectId, setActiveProjectId] = useState("");
   const portfolioId = user?.portfolio?.id || "";
@@ -295,6 +305,20 @@ const Dashboard = () => {
     return `${window.location.origin}/p/...`;
   }, [user, portfolioForm?.slug]);
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error: unknown) {
+      setCopied(false);
+      console.error(error);
+    }
+  };
+
   if (!user || !portfolioForm) {
     return (
       <div className="min-h-screen">
@@ -307,122 +331,174 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        {/* Header actions */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+        {/* ── Page Header ── */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl">Your Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl">Your Dashboard</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Logged in as <strong>{user.username}</strong>
             </p>
           </div>
-          <div className="flex gap-2">
+
+          {/* Action Buttons — stack on mobile, row on sm+ */}
+          <div className="flex flex-col gap-2 xs:flex-row sm:flex-row sm:items-center">
             <Link
-              // href={`/u/${user.username}`}
               href={`/p/${portfolioForm?.slug}`}
+              className="w-full xs:w-auto"
             >
-              <Button variant="secondary">
-                <Eye className="mr-2 h-4 w-4" /> Preview
+              <Button variant="secondary" className="w-full xs:w-auto">
+                <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                Preview
               </Button>
             </Link>
 
             {portfolioForm.isPublished ? (
               <Button
                 onClick={unpublishPortfolio}
-                className="bg-gradient-brand shadow-glow"
+                disabled={isPendingUnpublishPortfolio}
+                className="bg-gradient-brand shadow-glow w-full xs:w-auto"
               >
                 {isPendingUnpublishPortfolio ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2
+                    className="mr-2 h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                )}{" "}
-                {isPendingUnpublishPortfolio
-                  ? "Unpublishing..."
-                  : "Unpublish Portfolio"}
+                  <UploadCloud className="mr-2 h-4 w-4" aria-hidden="true" />
+                )}
+                {isPendingUnpublishPortfolio ? "Unpublishing…" : "Unpublish"}
               </Button>
             ) : (
               <Button
                 onClick={publishPortfolio}
-                className="bg-gradient-brand shadow-glow"
+                disabled={isPendingPublishPortfolio}
+                className="bg-gradient-brand shadow-glow w-full xs:w-auto"
               >
                 {isPendingPublishPortfolio ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2
+                    className="mr-2 h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                )}{" "}
-                {isPendingPublishPortfolio
-                  ? "Publishing..."
-                  : "Publish Portfolio"}
+                  <UploadCloud className="mr-2 h-4 w-4" aria-hidden="true" />
+                )}
+                {isPendingPublishPortfolio ? "Publishing…" : "Publish"}
               </Button>
             )}
 
             <Button
               onClick={savePortfolio}
-              className="bg-gradient-brand shadow-glow"
+              disabled={isPendingUpdatePortfolio}
+              className="bg-gradient-brand shadow-glow w-full xs:w-auto"
             >
               {isPendingUpdatePortfolio ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2
+                  className="mr-2 h-4 w-4 animate-spin"
+                  aria-hidden="true"
+                />
               ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}{" "}
-              {isPendingUpdatePortfolio ? "Saving..." : "Save Portfolio"}
+                <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+              )}
+              {isPendingUpdatePortfolio ? "Saving…" : "Save"}
             </Button>
           </div>
         </div>
 
-        {/* Share Link Card */}
-        <div className="mt-6 flex items-center gap-2 rounded-2xl bg-card p-4 text-sm">
-          <Share2 className="h-4 w-4 text-brand-cyan" />
-          <span className="text-muted-foreground">Share with clients:</span>
-          <code className="rounded bg-background px-2 py-1 text-xs">
+        {/* ── Share Link Card ── */}
+        <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-card p-4 sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex items-center gap-2">
+            <Share2
+              className="h-4 w-4 shrink-0 text-brand-cyan"
+              aria-hidden="true"
+            />
+            <span className="text-sm text-muted-foreground">
+              Share with clients:
+            </span>
+          </div>
+          {/* URL truncates on small screens */}
+          <code className="min-w-0 flex-1 truncate rounded bg-background px-2 py-1 text-xs">
             {shareUrl}
           </code>
           <Button
             size="sm"
             variant="ghost"
-            className="ml-auto"
-            onClick={() => navigator.clipboard.writeText(shareUrl)}
+            onClick={handleCopy}
+            className="shrink-0 self-end sm:self-auto"
+            aria-label={copied ? "Link copied" : "Copy share link"}
           >
-            Copy
+            {copied ? (
+              <>
+                <Check
+                  className="mr-1.5 h-3.5 w-3.5 text-green-500"
+                  aria-hidden="true"
+                />
+                Copied!
+              </>
+            ) : (
+              "Copy"
+            )}
           </Button>
         </div>
 
-        {/* Basics Section */}
+        {/* ── Portfolio Basics ── */}
         <PortfolioForm portfolioForm={portfolioForm} />
 
-        {/* Skills Section */}
-        <div className="mt-6 rounded-3xl bg-card p-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl">Skills</h2>
-            <div
-              className={
+        {/* ── Skills Section ── */}
+        <section
+          className="mt-6 rounded-3xl bg-card p-5 sm:p-8"
+          aria-label="Skills"
+        >
+          {/* Section header */}
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg sm:text-xl">Skills</h2>
+
+            <span
+              className={cn(
+                "hidden text-xs sm:inline-block",
                 allSkillsForCurrentPortfolio.length === 0
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-green-500",
+              )}
             >
               {allSkillsForCurrentPortfolio.length === 0
                 ? "No skills added yet"
-                : `${allSkillsForCurrentPortfolio.length} skills added`}
-            </div>
+                : `${allSkillsForCurrentPortfolio.length} added`}
+            </span>
+
             <Button size="sm" variant="secondary" onClick={handleAddSkill}>
-              <Plus className="mr-1 h-4 w-4" /> Add
+              <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
+              Add
             </Button>
           </div>
 
-          {/* Display all skills */}
-          {allSkillsForCurrentPortfolio.length > 0 && (
-            <SkillsTable
-              allSkillsForCurrentPortfolio={allSkillsForCurrentPortfolio}
-              handleEditSkill={handleEditSkill}
-              handleDeleteSkill={handleDeleteSkill}
-              isPendingDeleteSkill={isPendingDeleteSkill}
-              activeSkillId={activeSkillId}
-            />
+          {/* Mobile count badge (visible below sm) */}
+          {allSkillsForCurrentPortfolio.length === 0 ? (
+            <p className="mt-2 text-xs text-red-500 sm:hidden">
+              No skills added yet
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-green-500 sm:hidden">
+              {allSkillsForCurrentPortfolio.length} skills added
+            </p>
           )}
 
-          <div className="mt-6 space-y-3">
-            {showSkillForm && (
+          {allSkillsForCurrentPortfolio.length > 0 && (
+            /* Horizontal scroll wrapper for the table on narrow viewports */
+            <div className="mt-4 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+              <SkillsTable
+                allSkillsForCurrentPortfolio={allSkillsForCurrentPortfolio}
+                handleEditSkill={handleEditSkill}
+                handleDeleteSkill={handleDeleteSkill}
+                isPendingDeleteSkill={isPendingDeleteSkill}
+                activeSkillId={activeSkillId}
+              />
+            </div>
+          )}
+
+          {showSkillForm && (
+            <div className="mt-6 space-y-3">
               <SkillForm
                 skills={skills}
                 saveSkill={saveSkill}
@@ -431,43 +507,63 @@ const Dashboard = () => {
                 isPendingUpdateSkill={isPendingUpdateSkill}
                 isEditingSkill={isEditingSkill}
               />
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
 
-        {/* Projects Section */}
-        <div className="mt-6 rounded-3xl bg-card p-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl">Projects</h2>
-            <div
-              className={
+        {/* ── Projects Section ── */}
+        <section
+          className="mt-6 rounded-3xl bg-card p-5 sm:p-8"
+          aria-label="Projects"
+        >
+          {/* Section header */}
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg sm:text-xl">Projects</h2>
+
+            <span
+              className={cn(
+                "hidden text-xs sm:inline-block",
                 allProjectsForCurrentPortfolio.length === 0
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-green-500",
+              )}
             >
               {allProjectsForCurrentPortfolio.length === 0
                 ? "No projects added yet"
-                : `${allProjectsForCurrentPortfolio.length} projects added`}
-            </div>
+                : `${allProjectsForCurrentPortfolio.length} added`}
+            </span>
+
             <Button size="sm" variant="secondary" onClick={handleAddProject}>
-              <Plus className="mr-1 h-4 w-4" /> Add
+              <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
+              Add
             </Button>
           </div>
 
-          {/* Display all projects */}
-          {allProjectsForCurrentPortfolio.length > 0 && (
-            <ProjectsTable
-              allProjectsForCurrentPortfolio={allProjectsForCurrentPortfolio}
-              handleEditProject={handleEditProject}
-              handleDeleteProject={handleDeleteProject}
-              isPendingDeleteProject={isPendingDeleteProject}
-              activeProjectId={activeProjectId}
-            />
+          {/* Mobile count badge */}
+          {allProjectsForCurrentPortfolio.length === 0 ? (
+            <p className="mt-2 text-xs text-red-500 sm:hidden">
+              No projects added yet
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-green-500 sm:hidden">
+              {allProjectsForCurrentPortfolio.length} projects added
+            </p>
           )}
 
-          <div className="mt-4 space-y-4">
-            {showProjectForm && (
+          {allProjectsForCurrentPortfolio.length > 0 && (
+            <div className="mt-4 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+              <ProjectsTable
+                allProjectsForCurrentPortfolio={allProjectsForCurrentPortfolio}
+                handleEditProject={handleEditProject}
+                handleDeleteProject={handleDeleteProject}
+                isPendingDeleteProject={isPendingDeleteProject}
+                activeProjectId={activeProjectId}
+              />
+            </div>
+          )}
+
+          {showProjectForm && (
+            <div className="mt-4 space-y-4">
               <ProjectForm
                 projects={projects}
                 saveProject={saveProject}
@@ -476,9 +572,12 @@ const Dashboard = () => {
                 isPendingUpdateProject={isPendingUpdateProject}
                 isEditingProject={isEditingProject}
               />
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
+
+        {/* Bottom spacer so last card doesn't touch the viewport edge on mobile */}
+        <div className="h-8 sm:h-0" aria-hidden="true" />
       </div>
     </div>
   );

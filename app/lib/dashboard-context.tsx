@@ -34,6 +34,8 @@ interface DashboardCtx {
   setSkills: React.Dispatch<React.SetStateAction<CreateSkillProps>>;
   projects: CreateProjectProps;
   setProjects: React.Dispatch<React.SetStateAction<CreateProjectProps>>;
+  isPreviewing: boolean;
+  setIsPreviewing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const DashboardCtx = createContext<DashboardCtx | null>(null);
@@ -43,6 +45,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [skills, setSkills] = useState<CreateSkillProps>(initialSkillState);
   const [projects, setProjects] =
     useState<CreateProjectProps>(initialProjectState);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   return (
     <DashboardCtx.Provider
@@ -53,6 +56,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setSkills,
         projects,
         setProjects,
+        isPreviewing,
+        setIsPreviewing,
       }}
     >
       {children}

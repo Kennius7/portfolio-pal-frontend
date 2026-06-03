@@ -6,7 +6,7 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { SiteFooter } from "@/app/components/SiteFooter";
 import { PortfolioView } from "@/app/components/PortfolioView";
 import { Button } from "@/app/components/ui/button";
-import { Eye, Share2 } from "lucide-react";
+// import { Eye, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useGetPortfolioBySlug } from "@/app/hooks/helpers";
@@ -31,36 +31,11 @@ const NotFoundComponent = () => {
 
 const PublicPortfolio = () => {
   const { slug } = useParams();
-  // const { user } = useAuth();
-  // const [profile, setProfile] = useState<User | null>(null);
   const [portfolio, setPortfolio] = useState<any | null>(null);
-  const [copied, setCopied] = useState(false);
-  // const isOwner = user?.id === profile?.userId;
-  // const portfolioId = profile?.portfolio?.id || "";
+  // const [copied, setCopied] = useState(false);
   const { data: portfolioBySlug, isPending: isPendingPortfolioBySlug } =
     useGetPortfolioBySlug(slug as string);
-  console.log("Portfolio by slug:>>>>>>>>>>>>>", portfolioBySlug);
-  // const { data: allUsers = [], isPending: isPendingAllUsers } = useGetAllUser();
-  // const {
-  //   data: allSkillsForCurrentPortfolio = [],
-  //   isPending: isPendingAllSkills,
-  // } = useGetAllSkillsByPortfolioId(portfolioId);
-  // const {
-  //   data: allProjectsForCurrentPortfolio = [],
-  //   isPending: isPendingAllProjects,
-  // } = useGetAllProjectsByPortfolioId(portfolioId);
-  // const filteredUserByUsername = allUsers.filter(
-  //   (user: User) => user.username === username,
-  // )[0];
-
-  // const isLoading =
-  //   isPendingAllUsers || isPendingAllSkills || isPendingAllProjects;
-
-  // useEffect(() => {
-  //   if (!filteredUserByUsername) return;
-  //   // eslint-disable-next-line react-hooks/set-state-in-effect
-  //   setProfile(filteredUserByUsername);
-  // }, [filteredUserByUsername]);
+  // console.log("Portfolio by slug:>>>>>>>>>>>>>", portfolioBySlug);
 
   useEffect(() => {
     if (!portfolioBySlug) return;
@@ -83,17 +58,20 @@ const PublicPortfolio = () => {
       </div>
     );
 
-  const share = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  };
+  // const share = async () => {
+  //   await navigator.clipboard.writeText(window.location.href);
+  //   setCopied(true);
+  //   setTimeout(() => setCopied(false), 1800);
+  // };
 
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 pt-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground">
+      {/* <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 pt-6">
+        <div
+          className="inline-flex items-center gap-2 rounded-full border border-border 
+          bg-card px-4 py-1.5 text-xs text-muted-foreground"
+        >
           <Eye className="h-3.5 w-3.5" /> Public view — read only
         </div>
         <div className="flex gap-2">
@@ -101,15 +79,8 @@ const PublicPortfolio = () => {
             <Share2 className="mr-1.5 h-4 w-4" />{" "}
             {copied ? "Copied!" : "Share link"}
           </Button>
-          {/* {isOwner && (
-            <Link href="/dashboard">
-              <Button size="sm" className="bg-gradient-brand">
-                <Edit className="mr-1.5 h-4 w-4" /> Edit
-              </Button>
-            </Link>
-          )} */}
         </div>
-      </div>
+      </div> */}
       <PortfolioView
         portfolio={portfolio}
         skills={portfolio.skills}
