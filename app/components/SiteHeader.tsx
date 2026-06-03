@@ -18,8 +18,8 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isPreviewing } = useDashboard();
-  console.log("Is it mobile:>>>>>>>>>>>>", isMobile);
-  console.log("Is it previewing:>>>>>>>>>>>>", isPreviewing);
+  // console.log("Is it mobile:>>>>>>>>>>>>", isMobile);
+  // console.log("Is it previewing:>>>>>>>>>>>>", isPreviewing);
 
   // Close mobile menu on route change
   useEffect(() => {
