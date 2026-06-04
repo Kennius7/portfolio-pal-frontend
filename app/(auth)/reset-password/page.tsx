@@ -5,7 +5,7 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 // import { toast } from "sonner";
 import {
@@ -138,13 +138,15 @@ const SuccessView = ({ onGoToLogin }: SuccessViewProps) => (
 // Main Page
 // ---------------------------------------------------------------------------
 
-interface ResetPasswordPageProps {
-  /** JWT or opaque token from the reset-password email link. */
-  token?: string;
-}
+// interface ResetPasswordPageProps {
+//   /** JWT or opaque token from the reset-password email link. */
+//   token?: string;
+// }
 
-const ResetPasswordPage = ({ token = "" }: ResetPasswordPageProps) => {
+const ResetPasswordPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
 
   // const [step, setStep] = useState<Step>("idle");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -209,7 +211,7 @@ const ResetPasswordPage = ({ token = "" }: ResetPasswordPageProps) => {
     e.preventDefault();
     if (!validate()) return;
 
-    resetPasswordMutation({ token, password: form.password });
+    resetPasswordMutation({ token: token as string, password: form.password });
 
     // try {
     //   await submitPasswordReset(token, form.password);

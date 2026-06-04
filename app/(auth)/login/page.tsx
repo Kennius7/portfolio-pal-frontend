@@ -38,8 +38,9 @@ const LoginPage = () => {
         duration: 5000,
       });
       router.push("/");
-    } catch (err: unknown) {
-      setErr((err as Error).message);
+    } catch (error: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setErr((error as any).response.data.message);
     } finally {
       setLoading(false);
     }
@@ -113,7 +114,7 @@ const LoginPage = () => {
               Reset Password
             </Link>
           </p>
-          <p className="mt-2 text-center text-sm text-muted-foreground">
+          {/* <p className="mt-2 text-center text-sm text-muted-foreground">
             Checking the Reset Password Page?{" "}
             <Link
               href="/reset-password"
@@ -121,7 +122,7 @@ const LoginPage = () => {
             >
               Go to page
             </Link>
-          </p>
+          </p> */}
           {/* <p className="mt-4 text-center text-xs text-muted-foreground">
             Demo: <code>kenny@demo.dev</code> / <code>demo1234</code>
           </p> */}
