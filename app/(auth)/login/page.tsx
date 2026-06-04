@@ -8,6 +8,7 @@ import { Label } from "@/app/components/ui/label";
 import { useAuth } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
 // export const Route = createFileRoute("/login")({ component: LoginPage });
 
@@ -26,6 +27,10 @@ const LoginPage = () => {
     setLoading(true);
     try {
       await login(payload);
+      toast.success("Signed in successfully!", {
+        position: "top-right",
+        duration: 5000,
+      });
       router.push("/");
     } catch (err: unknown) {
       setErr((err as Error).message);
