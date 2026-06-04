@@ -198,7 +198,7 @@ export default function Home() {
                 featured.map((u) => (
                   <Link
                     key={u.userId}
-                    href={`/u/${u.username}`}
+                    href={`/p/${u.portfolio.slug}`}
                     className="group rounded-2xl bg-card p-5 transition hover:shadow-glow sm:p-6"
                   >
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -216,7 +216,7 @@ export default function Home() {
                           {u.portfolio.title}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
-                          /u/{u.username}
+                          /p/{u.portfolio.slug}
                         </p>
                       </div>
                     </div>

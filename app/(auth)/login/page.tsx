@@ -114,18 +114,6 @@ const LoginPage = () => {
               Reset Password
             </Link>
           </p>
-          {/* <p className="mt-2 text-center text-sm text-muted-foreground">
-            Checking the Reset Password Page?{" "}
-            <Link
-              href="/reset-password"
-              className="text-brand-cyan font-semibold"
-            >
-              Go to page
-            </Link>
-          </p> */}
-          {/* <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo: <code>kenny@demo.dev</code> / <code>demo1234</code>
-          </p> */}
         </div>
       </div>
     </div>
