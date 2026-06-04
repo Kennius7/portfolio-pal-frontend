@@ -8,7 +8,7 @@ import { Label } from "@/app/components/ui/label";
 import { useAuth } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeClosed } from "lucide-react";
 import { toast } from "sonner";
 
 const SignupPage = () => {
@@ -20,6 +20,11 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,24 +111,35 @@ const SignupPage = () => {
               />
             </div>
 
-            <div className="grid gap-1.5">
+            <div className="grid gap-1.5 relative">
               <Label htmlFor="su-password">Password</Label>
               <Input
                 id="su-password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
               />
+              <div
+                onClick={togglePasswordVisibility}
+                className="absolute right-0 top-[50%] flex cursor-pointer items-center px-2"
+              >
+                {!showPassword ? (
+                  <EyeClosed className="h-5 w-5 text-muted-foreground outline-none" />
+                ) : (
+                  <Eye className="h-5 w-5 text-muted-foreground outline-none" />
+                )}
+              </div>
             </div>
 
             {/* Error banner */}
             {err && (
               <div
                 role="alert"
-                className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                className="flex items-start gap-2 rounded-lg border border-destructive/30 
+                bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
               >
                 <AlertCircle
                   className="mt-0.5 h-4 w-4 shrink-0"

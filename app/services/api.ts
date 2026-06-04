@@ -46,10 +46,6 @@ export async function registerUser(payload: RegisterUserProps) {
 // Login user
 export async function loginUser(payload: LoginUserProps) {
   console.log("Login Payload:>>>>>>>>>>>>", payload);
-  // const transformedPayload = {
-  //   email: payload.email,
-  //   password: payload.password,
-  // };
 
   try {
     const response = await client.post(`${authUrl}/login`, payload);
@@ -58,6 +54,56 @@ export async function loginUser(payload: LoginUserProps) {
   } catch (error: unknown) {
     console.error(
       "User Login Axios error:>>>>>>>>>>>>",
+      (error as any).response.data.message,
+    );
+    throw error;
+  }
+}
+
+// Forgot Password
+export async function forgotPassword(email: string) {
+  console.log("Email:>>>>>>>>>>>>", email);
+
+  try {
+    const response = await client.post(`${authUrl}/forgot-password`, { email });
+    console.log(
+      "Forgot Password Process initiated successfully:>>>>>>>>>>>>",
+      response.data,
+    );
+    return response.data;
+  } catch (error: unknown) {
+    console.error(
+      "Forgot Password Axios error:>>>>>>>>>>>>",
+      (error as any).response.data.message,
+    );
+    throw error;
+  }
+}
+
+// Reset Password
+export async function resetPassword(payload: {
+  token: string;
+  password: string;
+}) {
+  const { token, password } = payload;
+  console.log("Token:>>>>>>>>>>>>", token);
+  console.log("Password:>>>>>>>>>>>>", password);
+
+  if (!token) {
+    throw new Error("Token is required for password reset");
+  }
+
+  if (!password) {
+    throw new Error("Password is required for password reset");
+  }
+
+  try {
+    const response = await client.post(`${authUrl}/reset-password`, payload);
+    console.log("Password reset successfully:>>>>>>>>>>>>", response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error(
+      "Reset Password Axios error:>>>>>>>>>>>>",
       (error as any).response.data.message,
     );
     throw error;

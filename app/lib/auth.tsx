@@ -29,15 +29,27 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
+  // const [user, setUser] = useState<User | null>(() => {
+  //   if (typeof window === "undefined") return null;
 
-    const storedUser = localStorage.getItem("currentUser");
+  //   const storedUser = localStorage.getItem("currentUser");
 
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  //   return storedUser ? JSON.parse(storedUser) : null;
+  // });
+
   const isAdmin = user?.email === "ogbogukenny@yahoo.com" || false;
+
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem("currentUser");
+
+  //   if (storedUser) {
+  //     // eslint-disable-next-line react-hooks/set-state-in-effect
+  //     setUser(JSON.parse(storedUser));
+  //     setIsHydrated(true);
+  //   }
+  // }, [setUser]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
@@ -45,9 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedUser) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setUser(JSON.parse(storedUser));
-      setIsHydrated(true);
     }
-  }, [setUser]);
+
+    setIsHydrated(true);
+  }, []);
 
   const register: AuthCtx["register"] = async (payload: RegisterUserProps) => {
     const res = await registerUser(payload);

@@ -9,6 +9,7 @@ import { useAuth } from "@/app/lib/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Eye, EyeClosed } from "lucide-react";
 
 // export const Route = createFileRoute("/login")({ component: LoginPage });
 
@@ -19,6 +20,11 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,27 +55,39 @@ const LoginPage = () => {
             Log in to manage your portfolio.
           </p>
           <form onSubmit={submit} className="mt-8 space-y-4">
-            <div>
-              <Label>Email</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="login-email">Email</Label>
               <Input
                 type="email"
                 required
+                id="login-email"
                 value={email}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setEmail(e.target.value)
                 }
               />
             </div>
-            <div>
-              <Label>Password</Label>
+            <div className="grid gap-1.5 relative">
+              <Label htmlFor="login-password">Password</Label>
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
+                id="login-password"
                 value={password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
                 }
               />
+              <div
+                onClick={togglePasswordVisibility}
+                className="absolute right-0 top-[50%] flex cursor-pointer items-center px-2"
+              >
+                {!showPassword ? (
+                  <EyeClosed className="h-5 w-5 text-muted-foreground outline-none" />
+                ) : (
+                  <Eye className="h-5 w-5 text-muted-foreground outline-none" />
+                )}
+              </div>
             </div>
             {err && <p className="text-sm text-destructive">{err}</p>}
             <Button
@@ -86,9 +104,27 @@ const LoginPage = () => {
               Sign up
             </Link>
           </p>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo: <code>kenny@demo.dev</code> / <code>demo1234</code>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Forgot Password?{" "}
+            <Link
+              href="/forgot-password"
+              className="text-brand-cyan font-semibold"
+            >
+              Reset Password
+            </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Checking the Reset Password Page?{" "}
+            <Link
+              href="/reset-password"
+              className="text-brand-cyan font-semibold"
+            >
+              Go to page
+            </Link>
+          </p>
+          {/* <p className="mt-4 text-center text-xs text-muted-foreground">
+            Demo: <code>kenny@demo.dev</code> / <code>demo1234</code>
+          </p> */}
         </div>
       </div>
     </div>
