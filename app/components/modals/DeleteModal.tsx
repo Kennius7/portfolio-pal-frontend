@@ -64,11 +64,13 @@ export default function DeleteModal({
       <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
         <div className="mb-4 flex flex-col items-center justify-center gap-4 p-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">Delete {title}</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Delete {title}
+            </h2>
             <AlertCircle className="h-5 w-5 text-red-500" />
           </div>
 
-          <div className="flex items-center gap-2 text-center max-w-[350px]">
+          <div className="flex items-center gap-2 text-center max-w-[350px] text-gray-800">
             Are you sure you want to delete this {title}? This action cannot be
             undone.
           </div>
@@ -77,7 +79,7 @@ export default function DeleteModal({
             <button
               onClick={onClose}
               className="rounded px-6 py-1 transition hover:bg-zinc-100 
-                dark:hover:bg-zinc-800 border border-primary cursor-pointer"
+                dark:hover:bg-zinc-800 border border-primary cursor-pointer text-gray-800"
               aria-label="Close modal"
             >
               Close
